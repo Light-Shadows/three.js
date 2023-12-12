@@ -12,7 +12,6 @@ function SidebarMaterialConstantProperty( editor, property, name, options ) {
 	container.add( constant );
 
 	let object = null;
-	let materialSlot = null;
 	let material = null;
 
 	function onChange() {
@@ -21,21 +20,18 @@ function SidebarMaterialConstantProperty( editor, property, name, options ) {
 
 		if ( material[ property ] !== value ) {
 
-			editor.execute( new SetMaterialValueCommand( editor, object, property, value, materialSlot ) );
+			editor.execute( new SetMaterialValueCommand( editor, object, property, value, 0 /* TODO: currentMaterialSlot */ ) );
 
 		}
 
 	}
 
-	function update( currentObject, currentMaterialSlot = 0 ) {
-
-		object = currentObject;
-		materialSlot = currentMaterialSlot;
+	function update() {
 
 		if ( object === null ) return;
 		if ( object.material === undefined ) return;
 
-		material = editor.getObjectMaterial( object, materialSlot );
+		material = object.material;
 
 		if ( property in material ) {
 
@@ -52,7 +48,14 @@ function SidebarMaterialConstantProperty( editor, property, name, options ) {
 
 	//
 
-	signals.objectSelected.add( update );
+	signals.objectSelected.add( function ( selected ) {
+
+		object = selected;
+
+		update();
+
+	} );
+
 	signals.materialChanged.add( update );
 
 	return container;

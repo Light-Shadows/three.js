@@ -6,7 +6,6 @@ function SidebarMaterialProgram( editor, property ) {
 	const strings = editor.strings;
 
 	let object = null;
-	let materialSlot = null;
 	let material = null;
 
 	const container = new UIRow();
@@ -39,15 +38,12 @@ function SidebarMaterialProgram( editor, property ) {
 	} );
 	container.add( programFragment );
 
-	function update( currentObject, currentMaterialSlot = 0 ) {
-
-		object = currentObject;
-		materialSlot = currentMaterialSlot;
+	function update() {
 
 		if ( object === null ) return;
 		if ( object.material === undefined ) return;
 
-		material = editor.getObjectMaterial( object, materialSlot );
+		material = object.material;
 
 		if ( property in material ) {
 
@@ -63,7 +59,14 @@ function SidebarMaterialProgram( editor, property ) {
 
 	//
 
-	signals.objectSelected.add( update );
+	signals.objectSelected.add( function ( selected ) {
+
+		object = selected;
+
+		update();
+
+	} );
+
 	signals.materialChanged.add( update );
 
 	return container;

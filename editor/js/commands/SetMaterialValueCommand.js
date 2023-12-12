@@ -18,8 +18,6 @@ class SetMaterialValueCommand extends Command {
 		this.updatable = true;
 
 		this.object = object;
-		this.materialSlot = materialSlot;
-
 		this.material = this.editor.getObjectMaterial( object, materialSlot );
 
 		this.oldValue = ( this.material !== undefined ) ? this.material[ attributeName ] : undefined;
@@ -35,7 +33,7 @@ class SetMaterialValueCommand extends Command {
 		this.material.needsUpdate = true;
 
 		this.editor.signals.objectChanged.dispatch( this.object );
-		this.editor.signals.materialChanged.dispatch( this.object, this.materialSlot );
+		this.editor.signals.materialChanged.dispatch( this.material );
 
 	}
 
@@ -45,7 +43,7 @@ class SetMaterialValueCommand extends Command {
 		this.material.needsUpdate = true;
 
 		this.editor.signals.objectChanged.dispatch( this.object );
-		this.editor.signals.materialChanged.dispatch( this.object, this.materialSlot );
+		this.editor.signals.materialChanged.dispatch( this.material );
 
 	}
 

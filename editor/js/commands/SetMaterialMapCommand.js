@@ -18,8 +18,6 @@ class SetMaterialMapCommand extends Command {
 		this.name = `Set Material.${mapName}`;
 
 		this.object = object;
-		this.materialSlot = materialSlot;
-
 		this.material = this.editor.getObjectMaterial( object, materialSlot );
 
 		this.oldMap = ( object !== undefined ) ? this.material[ mapName ] : undefined;
@@ -36,7 +34,7 @@ class SetMaterialMapCommand extends Command {
 		this.material[ this.mapName ] = this.newMap;
 		this.material.needsUpdate = true;
 
-		this.editor.signals.materialChanged.dispatch( this.object, this.materialSlot );
+		this.editor.signals.materialChanged.dispatch( this.material );
 
 	}
 
@@ -45,7 +43,7 @@ class SetMaterialMapCommand extends Command {
 		this.material[ this.mapName ] = this.oldMap;
 		this.material.needsUpdate = true;
 
-		this.editor.signals.materialChanged.dispatch( this.object, this.materialSlot );
+		this.editor.signals.materialChanged.dispatch( this.material );
 
 	}
 

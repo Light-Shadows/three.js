@@ -421,11 +421,7 @@ function SidebarMaterial( editor ) {
 
 		currentMaterialSlot = parseInt( materialSlotSelect.getValue() );
 
-		if ( currentMaterialSlot !== previousSelectedSlot ) {
-
-			editor.signals.materialChanged.dispatch( currentObject, currentMaterialSlot );
-
-		}
+		if ( currentMaterialSlot !== previousSelectedSlot ) refreshUI();
 
 		let material = editor.getObjectMaterial( currentObject, currentMaterialSlot );
 

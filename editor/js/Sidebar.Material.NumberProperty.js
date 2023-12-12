@@ -12,28 +12,24 @@ function SidebarMaterialNumberProperty( editor, property, name, range = [ - Infi
 	container.add( number );
 
 	let object = null;
-	let materialSlot = null;
 	let material = null;
 
 	function onChange() {
 
 		if ( material[ property ] !== number.getValue() ) {
 
-			editor.execute( new SetMaterialValueCommand( editor, object, property, number.getValue(), materialSlot ) );
+			editor.execute( new SetMaterialValueCommand( editor, object, property, number.getValue(), 0 /* TODO: currentMaterialSlot */ ) );
 
 		}
 
 	}
 
-	function update( currentObject, currentMaterialSlot = 0 ) {
-
-		object = currentObject;
-		materialSlot = currentMaterialSlot;
+	function update() {
 
 		if ( object === null ) return;
 		if ( object.material === undefined ) return;
 
-		material = editor.getObjectMaterial( object, materialSlot );
+		material = object.material;
 
 		if ( property in material ) {
 
@@ -50,7 +46,14 @@ function SidebarMaterialNumberProperty( editor, property, name, range = [ - Infi
 
 	//
 
-	signals.objectSelected.add( update );
+	signals.objectSelected.add( function ( selected ) {
+
+		object = selected;
+
+		update();
+
+	} );
+
 	signals.materialChanged.add( update );
 
 	return container;

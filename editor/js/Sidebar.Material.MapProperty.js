@@ -85,7 +85,6 @@ function SidebarMaterialMapProperty( editor, property, name ) {
 	}
 
 	let object = null;
-	let materialSlot = null;
 	let material = null;
 
 	function onChange() {
@@ -104,7 +103,7 @@ function SidebarMaterialMapProperty( editor, property, name ) {
 
 			}
 
-			editor.execute( new SetMaterialMapCommand( editor, object, property, newMap, materialSlot ) );
+			editor.execute( new SetMaterialMapCommand( editor, object, property, newMap, 0 /* TODO: currentMaterialSlot */ ) );
 
 		}
 
@@ -133,7 +132,7 @@ function SidebarMaterialMapProperty( editor, property, name ) {
 
 		if ( material[ `${ property }Intensity` ] !== intensity.getValue() ) {
 
-			editor.execute( new SetMaterialValueCommand( editor, object, `${ property }Intensity`, intensity.getValue(), materialSlot ) );
+			editor.execute( new SetMaterialValueCommand( editor, object, `${ property }Intensity`, intensity.getValue(), 0 /* TODO: currentMaterialSlot */ ) );
 
 		}
 
@@ -143,7 +142,7 @@ function SidebarMaterialMapProperty( editor, property, name ) {
 
 		if ( material[ `${ mapType }Scale` ] !== scale.getValue() ) {
 
-			editor.execute( new SetMaterialValueCommand( editor, object, `${ mapType }Scale`, scale.getValue(), materialSlot ) );
+			editor.execute( new SetMaterialValueCommand( editor, object, `${ mapType }Scale`, scale.getValue(), 0 /* TODO: currentMaterialSlot */ ) );
 
 		}
 
@@ -155,7 +154,7 @@ function SidebarMaterialMapProperty( editor, property, name ) {
 
 		if ( material[ `${ mapType }Scale` ].x !== value[ 0 ] || material[ `${ mapType }Scale` ].y !== value[ 1 ] ) {
 
-			editor.execute( new SetMaterialVectorCommand( editor, object, `${ mapType }Scale`, value, materialSlot ) );
+			editor.execute( new SetMaterialVectorCommand( editor, object, `${ mapType }Scale`, value, 0 /* TODOL currentMaterialSlot */ ) );
 
 		}
 
@@ -167,21 +166,18 @@ function SidebarMaterialMapProperty( editor, property, name ) {
 
 		if ( material[ `${ mapType }Range` ][ 0 ] !== value[ 0 ] || material[ `${ mapType }Range` ][ 1 ] !== value[ 1 ] ) {
 
-			editor.execute( new SetMaterialRangeCommand( editor, object, `${ mapType }Range`, value[ 0 ], value[ 1 ], materialSlot ) );
+			editor.execute( new SetMaterialRangeCommand( editor, object, `${ mapType }Range`, value[ 0 ], value[ 1 ], 0 /* TODOL currentMaterialSlot */ ) );
 
 		}
 
 	}
 
-	function update( currentObject, currentMaterialSlot = 0 ) {
-
-		object = currentObject;
-		materialSlot = currentMaterialSlot;
+	function update() {
 
 		if ( object === null ) return;
 		if ( object.material === undefined ) return;
 
-		material = editor.getObjectMaterial( object, materialSlot );
+		material = object.material;
 
 		if ( property in material ) {
 
@@ -234,9 +230,11 @@ function SidebarMaterialMapProperty( editor, property, name ) {
 
 	signals.objectSelected.add( function ( selected ) {
 
+		object = selected;
+
 		map.setValue( null );
 
-		update( selected );
+		update();
 
 	} );
 
