@@ -32,6 +32,7 @@ function Viewport( editor ) {
 	//
 
 	let renderer = null;
+	let composer = null;
 	let pmremGenerator = null;
 
 	const camera = editor.camera;
@@ -338,7 +339,7 @@ function Viewport( editor ) {
 
 	} );
 
-	signals.rendererCreated.add( function ( newRenderer ) {
+	signals.rendererCreated.add( function ( newRenderer, newComposer ) {
 
 		if ( renderer !== null ) {
 
@@ -351,6 +352,7 @@ function Viewport( editor ) {
 		}
 
 		renderer = newRenderer;
+		composer = newComposer;
 
 		renderer.setAnimationLoop( animate );
 		renderer.setClearColor( 0xaaaaaa );
@@ -373,7 +375,7 @@ function Viewport( editor ) {
 		}
 
 		renderer.setPixelRatio( window.devicePixelRatio );
-		renderer.setSize( container.dom.offsetWidth, container.dom.offsetHeight );
+		( composer ? composer : renderer ).setSize( container.dom.offsetWidth, container.dom.offsetHeight );
 
 		pmremGenerator = new THREE.PMREMGenerator( renderer );
 		pmremGenerator.compileEquirectangularShader();
@@ -754,7 +756,7 @@ function Viewport( editor ) {
 		startTime = performance.now();
 
 		renderer.setViewport( 0, 0, container.dom.offsetWidth, container.dom.offsetHeight );
-		renderer.render( scene, editor.viewportCamera );
+		( composer ? composer : renderer ).render( scene, editor.viewportCamera );
 
 		if ( camera === editor.viewportCamera ) {
 

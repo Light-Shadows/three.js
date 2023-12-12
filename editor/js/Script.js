@@ -48,7 +48,7 @@ function Script( editor ) {
 
 	let renderer;
 
-	signals.rendererCreated.add( function ( newRenderer ) {
+	signals.rendererCreated.add( function ( newRenderer, ) {
 
 		renderer = newRenderer;
 

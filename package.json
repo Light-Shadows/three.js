@@ -120,5 +120,9 @@
       "build/three.module.js"
     ],
     "directories": {}
+  },
+  "dependencies": {
+    "n8ao": "^1.7.0",
+    "postprocessing": "^6.33.4"
   }
 }

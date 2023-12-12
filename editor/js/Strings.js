@@ -318,6 +318,21 @@ function Strings( config ) {
 			'sidebar/project/antialias': 'Antialias',
 			'sidebar/project/shadows': 'Shadows',
 			'sidebar/project/toneMapping': 'Tone mapping',
+
+			'sidebar/project/bloom': 'Bloom',
+			'sidebar/project/bloomIntensity': 'Intensity',
+			'sidebar/project/bloomThreshold': 'Luminance threshold',
+			'sidebar/project/bloomSmoothing': 'Luminance smoothing',
+
+			'sidebar/project/n8ao': 'N8AO',
+			'sidebar/project/n8aoRadius': 'Radius',
+			'sidebar/project/n8aoDistanceFalloff': 'Distance falloff',
+			'sidebar/project/n8aoIntensity': 'Intensity',
+			'sidebar/project/n8aoScreenSpaceRadius': 'Screen space radius',
+			'sidebar/project/n8aoAOSamples': 'AO samples',
+			'sidebar/project/n8aoDenoiseSamples': 'Denoise samples',
+			'sidebar/project/n8aoDenoiseRadius': 'Denoise radius',
+			
 			'sidebar/project/materials': 'Materials',
 			'sidebar/project/Assign': 'Assign',
 
