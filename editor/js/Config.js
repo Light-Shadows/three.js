@@ -16,6 +16,19 @@ function Config() {
 		'project/renderer/shadowType': 1, // PCF
 		'project/renderer/toneMapping': 0, // NoToneMapping
 		'project/renderer/toneMappingExposure': 1,
+		'project/renderer/bloom': true,
+		'project/renderer/bloomIntensity': 0.1,
+		'project/renderer/bloomThreshold': 0.15,
+		'project/renderer/bloomSmoothing': 1,
+		'project/renderer/n8ao': true,
+		'project/renderer/n8aoRadius': 20,
+		'project/renderer/n8aoFalloff': 1,
+		'project/renderer/n8aoIntensity': 3,
+		'project/renderer/n8aoSSRadius': true,
+		'project/renderer/n8aoAOSamples': 32,
+		'project/renderer/n8aoDenoiseSamples': 8,
+		'project/renderer/n8aoDenoiseRadius': 6,
+
 
 		'settings/history': false,
 
