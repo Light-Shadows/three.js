@@ -316,6 +316,7 @@ function Strings( config ) {
 			'sidebar/project/vr': 'VR',
 			'sidebar/project/renderer': 'Renderer',
 			'sidebar/project/antialias': 'Antialias',
+			'sidebar/project/multisampling': 'Multisampling',
 			'sidebar/project/shadows': 'Shadows',
 			'sidebar/project/toneMapping': 'Tone mapping',
 
@@ -332,7 +333,31 @@ function Strings( config ) {
 			'sidebar/project/n8aoAOSamples': 'AO samples',
 			'sidebar/project/n8aoDenoiseSamples': 'Denoise samples',
 			'sidebar/project/n8aoDenoiseRadius': 'Denoise radius',
-			
+
+			'sidebar/project/dof': 'DOF (WIP)',
+			'sidebar/project/dofFocusDistance': 'Focus distance',
+			'sidebar/project/dofFocalLength': 'Focal length',
+			'sidebar/project/dofBokehScale': 'Bokeh scale',
+
+			'sidebar/project/ssao': 'SSAO (WIP)',
+			'sidebar/project/ssaoBlendFunction': 'Blend function',
+			'sidebar/project/ssaoSamples': 'Samples',
+			'sidebar/project/ssaoRings': 'Rings',
+			'sidebar/project/ssaoDistanceThreshold': 'Distance threshold',
+			'sidebar/project/ssaoDistanceFalloff': 'Distance falloff',
+			'sidebar/project/ssaoRangeThreshold': 'Range threshold',
+			'sidebar/project/ssaoRangeFalloff': 'Range falloff',
+			'sidebar/project/ssaoLuminanceInfluence': 'Luminance influence',
+			'sidebar/project/ssaoRadius': 'Radius',
+			'sidebar/project/ssaoScale': 'Scale',
+			'sidebar/project/ssaoBias': 'Bias',
+			'sidebar/project/ssaoIntensity': 'Intensity',
+			'sidebar/project/ssaoResolutionScale': 'Resolution scale',
+			'sidebar/project/ssaoDepthAwareUpsampling': 'Depth aware upsampling',
+
+			'sidebar/project/smaa': 'SMAA (WIP)',
+			'sidebar/project/smaaPreset': 'Preset',
+
 			'sidebar/project/materials': 'Materials',
 			'sidebar/project/Assign': 'Assign',
 
