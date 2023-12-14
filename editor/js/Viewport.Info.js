@@ -7,7 +7,7 @@ function ViewportInfo(editor) {
 	const container = new UIPanel();
 	container.setId("info");
 	container.setPosition("absolute");
-	container.setLeft("10px");
+	container.setLeft("210px");
 	container.setBottom("10px");
 	container.setFontSize("12px");
 	container.setColor("#fff");
