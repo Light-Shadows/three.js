@@ -97,16 +97,16 @@
 			window.VRButton = VRButton; // Expose VRButton to APP Scripts
 
 			// title of outliner
-			// const h1 = document.createElement("h1");
-			// h1.appendChild(document.createTextNode("Outliner Panel"));
-			// document.body.appendChild(h1);
-			// h1.classList.add("title_outliner");
+			const h1 = document.createElement("h1");
+			h1.appendChild(document.createTextNode("Outliner Panel"));
+			document.body.appendChild(h1);
+			h1.classList.add("title_outliner");
 
 			// resize of outliner
 			const resizeOutliner = new ResizerOutliner(editor);
 			document.body.appendChild(resizeOutliner.dom);
 
-			// outliner
+			// // outliner
 			const outliner = new Outliner(editor);
 			document.body.appendChild(outliner.dom);
 
