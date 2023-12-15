@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 import { UINumber, UIPanel, UIRow, UISelect, UIText } from './libs/ui.js';
 import { UIBoolean } from './libs/ui.three.js';
-import { BloomEffect, DepthOfFieldEffect, EffectComposer, EffectPass, RenderPass, SMAAEffect, SMAAPreset, SSAOEffect, ToneMappingEffect } from 'postprocessing';
+import { BloomEffect, EffectComposer, EffectPass, RenderPass, SMAAEffect, ToneMappingEffect, VignetteEffect } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
 
 function SidebarProjectRenderer( editor ) {
@@ -18,8 +18,7 @@ function SidebarProjectRenderer( editor ) {
 	let currentToneMappingEffect = null;
 	let currentN8aoPass = null;
 	let currentBloomEffect = null;
-	let currentDOFEffect = null;
-	let currentSSAOEffect = null;
+	let currentVignetteEffect = null;
 	let currentSMAAEffect = null;
 
 	const container = new UIPanel();
@@ -45,6 +44,16 @@ function SidebarProjectRenderer( editor ) {
 		signals.rendererUpdated.dispatch();
 
 	}
+
+	// SMAA
+
+	const smaaHeader = new UIRow();
+	container.add( smaaHeader );
+
+	smaaHeader.add( new UIText( strings.getKey( 'sidebar/project/smaa' ).toUpperCase() ).setWidth( '90px' ) );
+
+	const smaaBoolean = new UIBoolean( config.getKey( 'project/renderer/smaa' ) ).onChange( createRenderer );
+	smaaHeader.add( smaaBoolean );
 
 	// Shadows
 
@@ -76,12 +85,24 @@ function SidebarProjectRenderer( editor ) {
 
 	// Tonemapping
 
-	const toneMappingRow = new UIRow();
-	container.add( toneMappingRow );
+	const toneMappingContainer = new UIPanel();
+	const toneMappingRows = [];
 
-	toneMappingRow.add( new UIText( strings.getKey( 'sidebar/project/toneMapping' ) ).setWidth( '90px' ) );
+	const toneMappingHeader = new UIRow();
+	toneMappingContainer.add( toneMappingHeader );
 
-	const toneMappingSelect = new UISelect().setOptions( {
+	toneMappingHeader.add( new UIText( strings.getKey( 'sidebar/project/toneMapping' ).toUpperCase() ).setWidth( '90px' ) );
+
+	const toneMappingBoolean = new UIBoolean( config.getKey( 'project/renderer/toneMapping' ) ).onChange( () => enableRows( toneMappingRows, toneMappingBoolean.getValue(), createRenderer ) );
+	toneMappingHeader.add( toneMappingBoolean );
+
+	const toneMappingModeRow = new UIRow();
+	toneMappingContainer.add( toneMappingModeRow );
+	toneMappingRows.push( toneMappingModeRow );
+
+	toneMappingModeRow.add( new UIText( strings.getKey( 'sidebar/project/toneMappingMode' ) ).setWidth( '90px' ) );
+
+	const toneMappingMode = new UISelect().setOptions( {
 		0: 'REINHARD', // REINHARD
 		1: 'REINHARD 2', // REINHARD2
 		2: 'REINHARD 2 ADAPTIVE', // REINHARD2_ADAPTIVE
@@ -89,16 +110,58 @@ function SidebarProjectRenderer( editor ) {
 		4: 'ACES FILMIC', // ACES_FILMIC
 		5: 'UNCHARTED 2' // UNCHARTED2
 	} ).setWidth( '120px' ).onChange( updateToneMapping );
-	toneMappingSelect.setValue( config.getKey( 'project/renderer/toneMapping' ) );
-	toneMappingRow.add( toneMappingSelect );
+	toneMappingMode.setValue( config.getKey( 'project/renderer/toneMappingMode' ) );
+	toneMappingModeRow.add( toneMappingMode );
+
+	const toneMappingExposureRow = new UIRow();
+	toneMappingContainer.add( toneMappingExposureRow );
+	toneMappingRows.push( toneMappingExposureRow );
+
+	toneMappingExposureRow.add( new UIText( strings.getKey( 'sidebar/project/toneMappingExposure' ) ).setWidth( '90px' ) );
+
+	const toneMappingExposure = new UINumber( config.getKey( 'project/renderer/toneMappingExposure' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateToneMapping );
+	toneMappingExposureRow.add( toneMappingExposure );
+
+	const toneMappingMiddleGreyRow = new UIRow();
+	toneMappingContainer.add( toneMappingMiddleGreyRow );
+	toneMappingRows.push( toneMappingMiddleGreyRow );
+
+	toneMappingMiddleGreyRow.add( new UIText( strings.getKey( 'sidebar/project/toneMappingMiddleGrey' ) ).setWidth( '90px' ) );
+
+	const toneMappingMiddleGrey = new UINumber( config.getKey( 'project/renderer/toneMappingMiddleGrey' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateToneMapping );
+	toneMappingMiddleGreyRow.add( toneMappingMiddleGrey );
+
+	const toneMappingWhitePointRow = new UIRow();
+	toneMappingContainer.add( toneMappingWhitePointRow );
+	toneMappingRows.push( toneMappingWhitePointRow );
+
+	toneMappingWhitePointRow.add( new UIText( strings.getKey( 'sidebar/project/toneMappingWhitePoint' ) ).setWidth( '90px' ) );
+
+	const toneMappingWhitePoint = new UINumber( config.getKey( 'project/renderer/toneMappingWhitePoint' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateToneMapping );
+	toneMappingWhitePointRow.add( toneMappingWhitePoint );
+
+	const toneMappingAverageLuminanceRow = new UIRow();
+	toneMappingContainer.add( toneMappingAverageLuminanceRow );
+	toneMappingRows.push( toneMappingAverageLuminanceRow );
+
+	toneMappingAverageLuminanceRow.add( new UIText( strings.getKey( 'sidebar/project/toneMappingAverageLuminance' ) ).setWidth( '90px' ) );
+
+	const toneMappingAverageLuminance = new UINumber( config.getKey( 'project/renderer/toneMappingAverageLuminance' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateToneMapping );
+	toneMappingAverageLuminanceRow.add( toneMappingAverageLuminance );
 
 	function updateToneMapping() {
 
-		currentToneMappingEffect.mode = parseInt( toneMappingSelect.getValue() );
+		currentToneMappingEffect.mode = parseInt( toneMappingMode.getValue() );
+		currentRenderer.toneMappingExposure = parseFloat( toneMappingExposure.getValue() );
+		currentToneMappingEffect.middleGrey = parseFloat( toneMappingMiddleGrey.getValue() );
+		currentToneMappingEffect.whitePoint = parseFloat( toneMappingWhitePoint.getValue() );
+		currentToneMappingEffect.averageLuminance = parseFloat( toneMappingAverageLuminance.getValue() );
 
 		signals.rendererUpdated.dispatch();
 
 	}
+
+	container.add( toneMappingContainer );
 
 	// Bloom
 
@@ -151,6 +214,58 @@ function SidebarProjectRenderer( editor ) {
 	}
 
 	container.add( bloomContainer );
+
+	// Vignette
+
+	const vignetteContainer = new UIPanel();
+	const vignetteRows = [];
+
+	const vignetteHeader = new UIRow();
+	vignetteContainer.add( vignetteHeader );
+
+	vignetteHeader.add( new UIText( strings.getKey( 'sidebar/project/vignette' ).toUpperCase() ).setWidth( '90px' ) );
+
+	const vignetteBoolean = new UIBoolean( config.getKey( 'project/renderer/vignette' ) ).onChange( () => enableRows( vignetteRows, vignetteBoolean.getValue(), createRenderer ) );
+	vignetteHeader.add( vignetteBoolean );
+
+	const vignetteOffsetRow = new UIRow().setDisplay( vignetteBoolean.getValue() ? '' : 'none' );
+	vignetteContainer.add( vignetteOffsetRow );
+	vignetteRows.push( vignetteOffsetRow );
+
+	vignetteOffsetRow.add( new UIText( strings.getKey( 'sidebar/project/vignetteOffset' ) ).setWidth( '90px' ) );
+
+	const vignetteOffset = new UINumber( config.getKey( 'project/renderer/vignetteOffset' ) ).setWidth( '30px' ).setRange( 0, 1 ).onChange( updateVignette );
+	vignetteOffsetRow.add( vignetteOffset );
+
+	const vignetteDarknessRow = new UIRow().setDisplay( vignetteBoolean.getValue() ? '' : 'none' );
+	vignetteContainer.add( vignetteDarknessRow );
+	vignetteRows.push( vignetteDarknessRow );
+
+	vignetteDarknessRow.add( new UIText( strings.getKey( 'sidebar/project/vignetteDarkness' ) ).setWidth( '90px' ) );
+
+	const vignetteDarkness = new UINumber( config.getKey( 'project/renderer/vignetteDarkness' ) ).setWidth( '30px' ).setRange( 0, 1 ).onChange( updateVignette );
+	vignetteDarknessRow.add( vignetteDarkness );
+
+	const vignetteEskilRow = new UIRow().setDisplay( vignetteBoolean.getValue() ? '' : 'none' );
+	vignetteContainer.add( vignetteEskilRow );
+	vignetteRows.push( vignetteEskilRow );
+
+	vignetteEskilRow.add( new UIText( strings.getKey( 'sidebar/project/vignetteEskil' ) ).setWidth( '90px' ) );
+
+	const vignetteEskil = new UIBoolean( config.getKey( 'project/renderer/vignetteEskil' ) ).onChange( updateVignette );
+	vignetteEskilRow.add( vignetteEskil );
+
+	function updateVignette() {
+
+		currentVignetteEffect.offset = parseFloat( vignetteOffset.getValue() );
+		currentVignetteEffect.darkness = parseFloat( vignetteDarkness.getValue() );
+		currentVignetteEffect.eskil = vignetteEskil.getValue();
+
+		signals.rendererUpdated.dispatch();
+
+	}
+
+	container.add( vignetteContainer );
 
 	// N8AO
 
@@ -244,267 +359,6 @@ function SidebarProjectRenderer( editor ) {
 
 	container.add( n8aoContainer );
 
-	// DOF
-
-	const dofContainer = new UIPanel();
-	const dofRows = [];
-
-	const dofHeader = new UIRow();
-	dofContainer.add( dofHeader );
-
-	dofHeader.add( new UIText( strings.getKey( 'sidebar/project/dof' ).toUpperCase() ).setWidth( '90px' ) );
-
-	const dofBoolean = new UIBoolean( config.getKey( 'project/renderer/dof' ) ).onChange( () => enableRows( dofRows, dofBoolean.getValue(), createRenderer ) );
-	dofHeader.add( dofBoolean );
-
-	const dofFocusDistanceRow = new UIRow().setDisplay( dofBoolean.getValue() ? '' : 'none' );
-	dofContainer.add( dofFocusDistanceRow );
-	dofRows.push( dofFocusDistanceRow );
-
-	dofFocusDistanceRow.add( new UIText( strings.getKey( 'sidebar/project/dofFocusDistance' ) ).setWidth( '90px' ) );
-
-	const dofFocusDistance = new UINumber( config.getKey( 'project/renderer/dofFocusDistance' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateDOF );
-	dofFocusDistanceRow.add( dofFocusDistance );
-
-	const dofFocalLengthRow = new UIRow().setDisplay( dofBoolean.getValue() ? '' : 'none' );
-	dofContainer.add( dofFocalLengthRow );
-	dofRows.push( dofFocalLengthRow );
-
-	dofFocalLengthRow.add( new UIText( strings.getKey( 'sidebar/project/dofFocalLength' ) ).setWidth( '90px' ) );
-
-	const dofFocalLength = new UINumber( config.getKey( 'project/renderer/dofFocalLength' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateDOF );
-	dofFocalLengthRow.add( dofFocalLength );
-
-	const dofBokehScaleRow = new UIRow().setDisplay( dofBoolean.getValue() ? '' : 'none' );
-	dofContainer.add( dofBokehScaleRow );
-	dofRows.push( dofBokehScaleRow );
-
-	dofBokehScaleRow.add( new UIText( strings.getKey( 'sidebar/project/dofBokehScale' ) ).setWidth( '90px' ) );
-
-	const dofBokehScale = new UINumber( config.getKey( 'project/renderer/dofBokehScale' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateDOF );
-	dofBokehScaleRow.add( dofBokehScale );
-
-	function updateDOF() {
-
-		currentDOFEffect.focusDistance = parseFloat( dofFocusDistance.getValue() );
-		currentDOFEffect.focalLength = parseFloat( dofFocalLength.getValue() );
-		currentDOFEffect.bokehScale = parseFloat( dofBokehScale.getValue() );
-
-		signals.rendererUpdated.dispatch();
-
-	}
-
-	container.add( dofContainer );
-
-	// SSAO
-
-	const ssaoContainer = new UIPanel();
-	const ssaoRows = [];
-
-	const ssaoHeader = new UIRow();
-	ssaoContainer.add( ssaoHeader );
-
-	ssaoHeader.add( new UIText( strings.getKey( 'sidebar/project/ssao' ).toUpperCase() ).setWidth( '90px' ) );
-
-	const ssaoBoolean = new UIBoolean( config.getKey( 'project/renderer/ssao' ) ).onChange( () => enableRows( ssaoRows, ssaoBoolean.getValue(), createRenderer ) );
-	ssaoHeader.add( ssaoBoolean );
-
-	const ssaoBlendFunctionRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoBlendFunctionRow );
-	ssaoRows.push( ssaoBlendFunctionRow );
-
-	ssaoBlendFunctionRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoBlendFunction' ) ).setWidth( '90px' ) );
-
-	const ssaoBlendFunction = new UISelect().setOptions( {
-		0: 'Multiply',
-		1: 'Subtract',
-		2: 'Add',
-		3: 'Divide',
-		4: 'Min',
-		5: 'Max'
-	} ).setWidth( '150px' ).onChange( updateSSAO );
-	ssaoBlendFunction.setValue( config.getKey( 'project/renderer/ssaoBlendFunction' ) );
-	ssaoBlendFunctionRow.add( ssaoBlendFunction );
-
-	const ssaoSamplesRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoSamplesRow );
-	ssaoRows.push( ssaoSamplesRow );
-
-	ssaoSamplesRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoSamples' ) ).setWidth( '90px' ) );
-
-	const ssaoSamples = new UINumber( config.getKey( 'project/renderer/ssaoSamples' ) ).setWidth( '30px' ).setPrecision( 0 ).setNudge( 1 ).setStep( 10 ).setRange( 0, Infinity ).onChange( updateSSAO );
-	ssaoSamplesRow.add( ssaoSamples );
-
-	const ssaoRingsRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoRingsRow );
-	ssaoRows.push( ssaoRingsRow );
-
-	ssaoRingsRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoRings' ) ).setWidth( '90px' ) );
-
-	const ssaoRings = new UINumber( config.getKey( 'project/renderer/ssaoRings' ) ).setWidth( '30px' ).setPrecision( 0 ).setNudge( 1 ).setStep( 10 ).setRange( 0, Infinity ).onChange( updateSSAO );
-	ssaoRingsRow.add( ssaoRings );
-
-	const ssaoDistanceThresholdRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoDistanceThresholdRow );
-	ssaoRows.push( ssaoDistanceThresholdRow );
-
-	ssaoDistanceThresholdRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoDistanceThreshold' ) ).setWidth( '90px' ) );
-
-	const ssaoDistanceThreshold = new UINumber( config.getKey( 'project/renderer/ssaoDistanceThreshold' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateSSAO );
-	ssaoDistanceThresholdRow.add( ssaoDistanceThreshold );
-
-	const ssaoDistanceFalloffRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoDistanceFalloffRow );
-	ssaoRows.push( ssaoDistanceFalloffRow );
-
-	ssaoDistanceFalloffRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoDistanceFalloff' ) ).setWidth( '90px' ) );
-
-	const ssaoDistanceFalloff = new UINumber( config.getKey( 'project/renderer/ssaoDistanceFalloff' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateSSAO );
-	ssaoDistanceFalloffRow.add( ssaoDistanceFalloff );
-
-	const ssaoRangeThresholdRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoRangeThresholdRow );
-	ssaoRows.push( ssaoRangeThresholdRow );
-
-	ssaoRangeThresholdRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoRangeThreshold' ) ).setWidth( '90px' ) );
-
-	const ssaoRangeThreshold = new UINumber( config.getKey( 'project/renderer/ssaoRangeThreshold' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateSSAO );
-	ssaoRangeThresholdRow.add( ssaoRangeThreshold );
-
-	const ssaoRangeFalloffRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoRangeFalloffRow );
-	ssaoRows.push( ssaoRangeFalloffRow );
-
-	ssaoRangeFalloffRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoRangeFalloff' ) ).setWidth( '90px' ) );
-
-	const ssaoRangeFalloff = new UINumber( config.getKey( 'project/renderer/ssaoRangeFalloff' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateSSAO );
-	ssaoRangeFalloffRow.add( ssaoRangeFalloff );
-
-	const ssaoLuminanceInfluenceRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoLuminanceInfluenceRow );
-	ssaoRows.push( ssaoLuminanceInfluenceRow );
-
-	ssaoLuminanceInfluenceRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoLuminanceInfluence' ) ).setWidth( '90px' ) );
-
-	const ssaoLuminanceInfluence = new UINumber( config.getKey( 'project/renderer/ssaoLuminanceInfluence' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateSSAO );
-	ssaoLuminanceInfluenceRow.add( ssaoLuminanceInfluence );
-
-	const ssaoRadiusRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoRadiusRow );
-	ssaoRows.push( ssaoRadiusRow );
-
-	ssaoRadiusRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoRadius' ) ).setWidth( '90px' ) );
-
-	const ssaoRadius = new UINumber( config.getKey( 'project/renderer/ssaoRadius' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateSSAO );
-	ssaoRadiusRow.add( ssaoRadius );
-
-	const ssaoScaleRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoScaleRow );
-	ssaoRows.push( ssaoScaleRow );
-
-	ssaoScaleRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoScale' ) ).setWidth( '90px' ) );
-
-	const ssaoScale = new UINumber( config.getKey( 'project/renderer/ssaoScale' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateSSAO );
-	ssaoScaleRow.add( ssaoScale );
-
-	const ssaoBiasRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoBiasRow );
-	ssaoRows.push( ssaoBiasRow );
-
-	ssaoBiasRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoBias' ) ).setWidth( '90px' ) );
-
-	const ssaoBias = new UINumber( config.getKey( 'project/renderer/ssaoBias' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateSSAO );
-	ssaoBiasRow.add( ssaoBias );
-
-	const ssaoIntensityRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoIntensityRow );
-	ssaoRows.push( ssaoIntensityRow );
-
-	ssaoIntensityRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoIntensity' ) ).setWidth( '90px' ) );
-
-	const ssaoIntensity = new UINumber( config.getKey( 'project/renderer/ssaoIntensity' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateSSAO );
-	ssaoIntensityRow.add( ssaoIntensity );
-
-	const ssaoResolutionScaleRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoResolutionScaleRow );
-	ssaoRows.push( ssaoResolutionScaleRow );
-
-	ssaoResolutionScaleRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoResolutionScale' ) ).setWidth( '90px' ) );
-
-	const ssaoResolutionScale = new UINumber( config.getKey( 'project/renderer/ssaoResolutionScale' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateSSAO );
-	ssaoResolutionScaleRow.add( ssaoResolutionScale );
-
-	const ssaoDepthAwareUpsamplingRow = new UIRow().setDisplay( ssaoBoolean.getValue() ? '' : 'none' );
-	ssaoContainer.add( ssaoDepthAwareUpsamplingRow );
-	ssaoRows.push( ssaoDepthAwareUpsamplingRow );
-
-	ssaoDepthAwareUpsamplingRow.add( new UIText( strings.getKey( 'sidebar/project/ssaoDepthAwareUpsampling' ) ).setWidth( '90px' ) );
-
-	const ssaoDepthAwareUpsampling = new UIBoolean( config.getKey( 'project/renderer/ssaoDepthAwareUpsampling' ) ).onChange( updateSSAO );
-	ssaoDepthAwareUpsamplingRow.add( ssaoDepthAwareUpsampling );
-
-	function updateSSAO() {
-
-		currentSSAOEffect.blendFunction = parseInt( ssaoBlendFunction.getValue() );
-		currentSSAOEffect.samples = parseInt( ssaoSamples.getValue() );
-		currentSSAOEffect.rings = parseInt( ssaoRings.getValue() );
-		currentSSAOEffect.distanceThreshold = parseFloat( ssaoDistanceThreshold.getValue() );
-		currentSSAOEffect.distanceFalloff = parseFloat( ssaoDistanceFalloff.getValue() );
-		currentSSAOEffect.rangeThreshold = parseFloat( ssaoRangeThreshold.getValue() );
-		currentSSAOEffect.rangeFalloff = parseFloat( ssaoRangeFalloff.getValue() );
-		currentSSAOEffect.luminanceInfluence = parseFloat( ssaoLuminanceInfluence.getValue() );
-		currentSSAOEffect.radius = parseFloat( ssaoRadius.getValue() );
-		currentSSAOEffect.scale = parseFloat( ssaoScale.getValue() );
-		currentSSAOEffect.bias = parseFloat( ssaoBias.getValue() );
-		currentSSAOEffect.intensity = parseFloat( ssaoIntensity.getValue() );
-		currentSSAOEffect.resolutionScale = parseFloat( ssaoResolutionScale.getValue() );
-		currentSSAOEffect.depthAwareUpsampling = ssaoDepthAwareUpsampling.getValue();
-
-		signals.rendererUpdated.dispatch();
-
-	}
-
-	container.add( ssaoContainer );
-
-	// SMAA
-
-	const smaaContainer = new UIPanel();
-	const smaaRows = [];
-
-	const smaaHeader = new UIRow();
-	smaaContainer.add( smaaHeader );
-
-	smaaHeader.add( new UIText( strings.getKey( 'sidebar/project/smaa' ).toUpperCase() ).setWidth( '90px' ) );
-
-	const smaaBoolean = new UIBoolean( config.getKey( 'project/renderer/smaa' ) ).onChange( () => enableRows( smaaRows, smaaBoolean.getValue(), createRenderer ) );
-	smaaHeader.add( smaaBoolean );
-
-	const smaaPresetRow = new UIRow().setDisplay( smaaBoolean.getValue() ? '' : 'none' );
-	smaaContainer.add( smaaPresetRow );
-
-	smaaPresetRow.add( new UIText( strings.getKey( 'sidebar/project/smaaPreset' ) ).setWidth( '90px' ) );
-
-	const smaaPreset = new UISelect().setOptions( {
-		0: 'Low',
-		1: 'Medium',
-		2: 'High',
-		3: 'Ultra'
-	} ).setWidth( '150px' ).onChange( updateSMAA );
-	smaaPreset.setValue( config.getKey( 'project/renderer/smaaPreset' ) );
-	smaaPresetRow.add( smaaPreset );
-
-	function updateSMAA() {
-
-		currentSMAAEffect.applyPreset( parseFloat( smaaPreset.getValue() ) );
-
-		signals.rendererUpdated.dispatch();
-
-	}
-
-	container.add( smaaContainer );
-
-	container.add( new UIText( SMAAPreset.LOW === 0 ? 'OK' : 'KO' ) );
-
 	//
 
 	function enableRows( rows, enabled, thenFunc ) {
@@ -539,6 +393,7 @@ function SidebarProjectRenderer( editor ) {
 			stencil: false,
 			depth: false,
 			toneMapping: THREE.NoToneMapping,
+			toneMappingExposure: parseFloat( toneMappingExposure.getValue() )
 		} );
 		currentRenderer.shadowMap.enabled = shadowsBoolean.getValue();
 		currentRenderer.shadowMap.type = parseFloat( shadowTypeSelect.getValue() );
@@ -589,48 +444,20 @@ function SidebarProjectRenderer( editor ) {
 
 		}
 
-		// DOF
+		// Vignette
 
-		if ( dofBoolean.getValue() ) {
+		if ( vignetteBoolean.getValue() ) {
 
-			currentDOFEffect = new DepthOfFieldEffect( editor.camera, {
-				focusDistance: parseFloat( dofFocusDistance.getValue() ),
-				focalLength: parseFloat( dofFocalLength.getValue() ),
-				bokehScale: parseFloat( dofBokehScale.getValue() )
+			currentVignetteEffect = new VignetteEffect( {
+				offset: parseFloat( vignetteOffset.getValue() ),
+				darkness: parseFloat( vignetteDarkness.getValue() ),
+				eskil: vignetteEskil.getValue()
 			} );
-			currentComposer.addPass( new EffectPass( editor.camera, currentDOFEffect ) );
+			currentComposer.addPass( new EffectPass( editor.camera, currentVignetteEffect ) );
 
 		} else {
 
-			currentDOFEffect = null;
-
-		}
-
-		// SSAO
-
-		if ( ssaoBoolean.getValue() ) {
-
-			currentSSAOEffect = new SSAOEffect( editor.camera, undefined, {
-				blendFunction: parseFloat( ssaoBlendFunction.getValue() ),
-				samples: parseInt( ssaoSamples.getValue() ),
-				rings: parseInt( ssaoRings.getValue() ),
-				distanceThreshold: parseFloat( ssaoDistanceThreshold.getValue() ),
-				distanceFalloff: parseFloat( ssaoDistanceFalloff.getValue() ),
-				rangeThreshold: parseFloat( ssaoRangeThreshold.getValue() ),
-				rangeFalloff: parseFloat( ssaoRangeFalloff.getValue() ),
-				luminanceInfluence: parseFloat( ssaoLuminanceInfluence.getValue() ),
-				radius: parseFloat( ssaoRadius.getValue() ),
-				scale: parseFloat( ssaoScale.getValue() ),
-				bias: parseFloat( ssaoBias.getValue() ),
-				intensity: parseFloat( ssaoIntensity.getValue() ),
-				resolutionScale: parseFloat( ssaoResolutionScale.getValue() ),
-				depthAwareUpsampling: ssaoDepthAwareUpsampling.getValue()
-			} );
-			currentComposer.addPass( new EffectPass( editor.camera, currentSSAOEffect ) );
-
-		} else {
-
-			currentSSAOEffect = null;
+			currentVignetteEffect = null;
 
 		}
 
@@ -638,9 +465,8 @@ function SidebarProjectRenderer( editor ) {
 
 		if ( smaaBoolean.getValue() ) {
 
-			currentSMAAEffect = new SMAAEffect( {
-				preset: parseInt( smaaPreset.getValue() )
-			} );
+			currentSMAAEffect = new SMAAEffect();
+			currentComposer.addPass( new EffectPass( editor.camera, currentSMAAEffect ) );
 
 		} else {
 
@@ -650,9 +476,21 @@ function SidebarProjectRenderer( editor ) {
 
 		// ToneMapping
 
-		currentToneMappingEffect = new ToneMappingEffect( {
-			mode: parseInt( toneMappingSelect.getValue() )
-		} );
+		if ( toneMappingBoolean.getValue() ) {
+
+			currentToneMappingEffect = new ToneMappingEffect( {
+				mode: parseInt( toneMappingMode.getValue() ),
+				middleGrey: parseFloat( toneMappingMiddleGrey.getValue() ),
+				maxLuminance: parseFloat( toneMappingWhitePoint.getValue() ),
+				averageLuminance: parseFloat( toneMappingAverageLuminance.getValue() )
+			} );
+			currentComposer.addPass( new EffectPass( editor.camera, currentToneMappingEffect ) );
+
+		} else {
+
+			currentToneMappingEffect = null;
+
+		}
 
 		signals.rendererCreated.dispatch( currentRenderer, currentComposer );
 		signals.rendererUpdated.dispatch();
@@ -673,7 +511,7 @@ function SidebarProjectRenderer( editor ) {
 
 		shadowsBoolean.setValue( currentRenderer.shadowMap.enabled );
 		shadowTypeSelect.setValue( currentRenderer.shadowMap.type );
-		toneMappingSelect.setValue( currentRenderer.toneMapping );
+		toneMappingMode.setValue( currentRenderer.toneMapping );
 
 		signals.rendererUpdated.dispatch();
 
@@ -687,12 +525,22 @@ function SidebarProjectRenderer( editor ) {
 			'project/renderer/shadows', shadowsBoolean.getValue(),
 			'project/renderer/shadowType', parseFloat( shadowTypeSelect.getValue() ),
 
-			'project/renderer/toneMapping', parseInt( toneMappingSelect.getValue() ),
+			'project/renderer/toneMapping', toneMappingBoolean.getValue(),
+			'project/renderer/toneMappingExposure', 1.0,
+			'project/renderer/toneMappingMode', parseInt( toneMappingMode.getValue() ),
+			'project/renderer/toneMappingMiddleGrey', parseFloat( toneMappingMiddleGrey.getValue() ),
+			'project/renderer/toneMappingWhitePoint', parseFloat( toneMappingWhitePoint.getValue() ),
+			'project/renderer/toneMappingAverageLuminance', parseFloat( toneMappingAverageLuminance.getValue() ),
 
 			'project/renderer/bloom', bloomBoolean.getValue(),
 			'project/renderer/bloomIntensity', parseFloat( bloomIntensity.getValue() ),
 			'project/renderer/bloomThreshold', parseFloat( bloomThreshold.getValue() ),
 			'project/renderer/bloomSmoothing', parseFloat( bloomSmoothing.getValue() ),
+
+			'project/renderer/vignette', vignetteBoolean.getValue(),
+			'project/renderer/vignetteOffset', parseFloat( vignetteOffset.getValue() ),
+			'project/renderer/vignetteDarkness', parseFloat( vignetteDarkness.getValue() ),
+			'project/renderer/vignetteEskil', vignetteEskil.getValue(),
 
 			'project/renderer/n8ao', n8aoBoolean.getValue(),
 			'project/renderer/n8aoRadius', parseInt( n8aoRadius.getValue() ),
@@ -703,29 +551,7 @@ function SidebarProjectRenderer( editor ) {
 			'project/renderer/n8aoDenoiseSamples', parseInt( n8aoDenoiseSamples.getValue() ),
 			'project/renderer/n8aoDenoiseRadius', parseFloat( n8aoDenoiseRadius.getValue() ),
 
-			'project/renderer/dof', dofBoolean.getValue(),
-			'project/renderer/dofFocusDistance', parseFloat( dofFocusDistance.getValue() ),
-			'project/renderer/dofFocalLength', parseFloat( dofFocalLength.getValue() ),
-			'project/renderer/dofBokehScale', parseFloat( dofBokehScale.getValue() ),
-
-			'project/renderer/ssao', ssaoBoolean.getValue(),
-			'project/renderer/ssaoBlendFunction', parseFloat( ssaoBlendFunction.getValue() ),
-			'project/renderer/ssaoSamples', parseInt( ssaoSamples.getValue() ),
-			'project/renderer/ssaoRings', parseInt( ssaoRings.getValue() ),
-			'project/renderer/ssaoDistanceThreshold', parseFloat( ssaoDistanceThreshold.getValue() ),
-			'project/renderer/ssaoDistanceFalloff', parseFloat( ssaoDistanceFalloff.getValue() ),
-			'project/renderer/ssaoRangeThreshold', parseFloat( ssaoRangeThreshold.getValue() ),
-			'project/renderer/ssaoRangeFalloff', parseFloat( ssaoRangeFalloff.getValue() ),
-			'project/renderer/ssaoLuminanceInfluence', parseFloat( ssaoLuminanceInfluence.getValue() ),
-			'project/renderer/ssaoRadius', parseFloat( ssaoRadius.getValue() ),
-			'project/renderer/ssaoScale', parseFloat( ssaoScale.getValue() ),
-			'project/renderer/ssaoBias', parseFloat( ssaoBias.getValue() ),
-			'project/renderer/ssaoIntensity', parseFloat( ssaoIntensity.getValue() ),
-			'project/renderer/ssaoResolutionScale', parseFloat( ssaoResolutionScale.getValue() ),
-			'project/renderer/ssaoDepthAwareUpsampling', ssaoDepthAwareUpsampling.getValue(),
-
-			'project/renderer/smaa', smaaBoolean.getValue(),
-			'project/renderer/smaaPreset', parseFloat( smaaPreset.getValue() )
+			'project/renderer/smaa', smaaBoolean.getValue()
 		);
 
 	} );
