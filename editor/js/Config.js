@@ -37,13 +37,11 @@ function Config() {
 		'project/renderer/n8aoRadius': 20,
 		'project/renderer/n8aoFalloff': 1,
 		'project/renderer/n8aoIntensity': 3,
-		'project/renderer/n8aoSSRadius': true,
 		'project/renderer/n8aoAOSamples': 32,
 		'project/renderer/n8aoDenoiseSamples': 8,
 		'project/renderer/n8aoDenoiseRadius': 6,
 
 		'project/renderer/smaa': true,
-		'project/renderer/smaaPreset': 0,
 
 		'settings/history': false,
 

@@ -234,7 +234,7 @@ function SidebarProjectRenderer( editor ) {
 
 	vignetteOffsetRow.add( new UIText( strings.getKey( 'sidebar/project/vignetteOffset' ) ).setWidth( '90px' ) );
 
-	const vignetteOffset = new UINumber( config.getKey( 'project/renderer/vignetteOffset' ) ).setWidth( '30px' ).setRange( 0, 1 ).onChange( updateVignette );
+	const vignetteOffset = new UINumber( config.getKey( 'project/renderer/vignetteOffset' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateVignette );
 	vignetteOffsetRow.add( vignetteOffset );
 
 	const vignetteDarknessRow = new UIRow().setDisplay( vignetteBoolean.getValue() ? '' : 'none' );
@@ -307,15 +307,6 @@ function SidebarProjectRenderer( editor ) {
 	const n8aoIntensity = new UINumber( config.getKey( 'project/renderer/n8aoIntensity' ) ).setWidth( '30px' ).setRange( 0, Infinity ).onChange( updateN8AO );
 	n8aoIntensityRow.add( n8aoIntensity );
 
-	const n8aoScreenSpaceRadiusRow = new UIRow().setDisplay( n8aoBoolean.getValue() ? '' : 'none' );
-	n8aoContainer.add( n8aoScreenSpaceRadiusRow );
-	n8aoRows.push( n8aoScreenSpaceRadiusRow );
-
-	n8aoScreenSpaceRadiusRow.add( new UIText( strings.getKey( 'sidebar/project/n8aoScreenSpaceRadius' ) ).setWidth( '90px' ) );
-
-	const n8aoScreenSpaceRadius = new UIBoolean( config.getKey( 'project/renderer/n8aoSSRadius' ) ).onChange( updateN8AO );
-	n8aoScreenSpaceRadiusRow.add( n8aoScreenSpaceRadius );
-
 	const n8aoAOSamplesRow = new UIRow().setDisplay( n8aoBoolean.getValue() ? '' : 'none' );
 	n8aoContainer.add( n8aoAOSamplesRow );
 	n8aoRows.push( n8aoAOSamplesRow );
@@ -348,7 +339,6 @@ function SidebarProjectRenderer( editor ) {
 		currentN8aoPass.configuration.aoRadius = parseInt( n8aoRadius.getValue() );
 		currentN8aoPass.configuration.distanceFalloff = parseFloat( n8aoDistanceFalloff.getValue() );
 		currentN8aoPass.configuration.intensity = parseFloat( n8aoIntensity.getValue() );
-		currentN8aoPass.configuration.screenSpaceRadius = n8aoScreenSpaceRadius.getValue();
 		currentN8aoPass.configuration.aoSamples = parseInt( n8aoAOSamples.getValue() );
 		currentN8aoPass.configuration.denoiseSamples = parseInt( n8aoDenoiseSamples.getValue() );
 		currentN8aoPass.configuration.denoiseRadius = parseFloat( n8aoDenoiseRadius.getValue() );
@@ -405,28 +395,6 @@ function SidebarProjectRenderer( editor ) {
 		currentRenderPass = new RenderPass( editor.scene, editor.camera );
 		currentComposer.addPass( currentRenderPass );
 
-		// N8AO
-
-		if ( n8aoBoolean.getValue() ) {
-
-			currentN8aoPass = new N8AOPostPass( editor.scene, editor.camera );
-
-			currentN8aoPass.configuration.aoRadius = parseInt( n8aoRadius.getValue() );
-			currentN8aoPass.configuration.distanceFalloff = parseFloat( n8aoDistanceFalloff.getValue() );
-			currentN8aoPass.configuration.intensity = parseFloat( n8aoIntensity.getValue() );
-			currentN8aoPass.configuration.screenSpaceRadius = n8aoScreenSpaceRadius.getValue();
-			currentN8aoPass.configuration.aoSamples = parseInt( n8aoAOSamples.getValue() );
-			currentN8aoPass.configuration.denoiseSamples = parseInt( n8aoDenoiseSamples.getValue() );
-			currentN8aoPass.configuration.denoiseRadius = parseFloat( n8aoDenoiseRadius.getValue() );
-
-			currentComposer.addPass( currentN8aoPass );
-
-		} else {
-
-			currentN8aoPass = null;
-
-		}
-
 		// Bloom
 
 		if ( bloomBoolean.getValue() ) {
@@ -441,23 +409,6 @@ function SidebarProjectRenderer( editor ) {
 		} else {
 
 			currentBloomEffect = null;
-
-		}
-
-		// Vignette
-
-		if ( vignetteBoolean.getValue() ) {
-
-			currentVignetteEffect = new VignetteEffect( {
-				offset: parseFloat( vignetteOffset.getValue() ),
-				darkness: parseFloat( vignetteDarkness.getValue() ),
-				eskil: vignetteEskil.getValue()
-			} );
-			currentComposer.addPass( new EffectPass( editor.camera, currentVignetteEffect ) );
-
-		} else {
-
-			currentVignetteEffect = null;
 
 		}
 
@@ -489,6 +440,45 @@ function SidebarProjectRenderer( editor ) {
 		} else {
 
 			currentToneMappingEffect = null;
+
+		}
+
+		// N8AO
+
+		if ( n8aoBoolean.getValue() ) {
+
+			currentN8aoPass = new N8AOPostPass( editor.scene, editor.camera );
+
+			currentN8aoPass.configuration.aoRadius = parseInt( n8aoRadius.getValue() );
+			currentN8aoPass.configuration.distanceFalloff = parseFloat( n8aoDistanceFalloff.getValue() );
+			currentN8aoPass.configuration.intensity = parseFloat( n8aoIntensity.getValue() );
+			currentN8aoPass.configuration.screenSpaceRadius = true;
+			currentN8aoPass.configuration.aoSamples = parseInt( n8aoAOSamples.getValue() );
+			currentN8aoPass.configuration.denoiseSamples = parseInt( n8aoDenoiseSamples.getValue() );
+			currentN8aoPass.configuration.denoiseRadius = parseFloat( n8aoDenoiseRadius.getValue() );
+
+			currentComposer.addPass( currentN8aoPass );
+
+		} else {
+
+			currentN8aoPass = null;
+
+		}
+
+		// Vignette
+
+		if ( vignetteBoolean.getValue() ) {
+
+			currentVignetteEffect = new VignetteEffect( {
+				offset: parseFloat( vignetteOffset.getValue() ),
+				darkness: parseFloat( vignetteDarkness.getValue() ),
+				eskil: vignetteEskil.getValue()
+			} );
+			currentComposer.addPass( new EffectPass( editor.camera, currentVignetteEffect ) );
+
+		} else {
+
+			currentVignetteEffect = null;
 
 		}
 
@@ -546,7 +536,6 @@ function SidebarProjectRenderer( editor ) {
 			'project/renderer/n8aoRadius', parseInt( n8aoRadius.getValue() ),
 			'project/renderer/n8aoFalloff', parseFloat( n8aoDistanceFalloff.getValue() ),
 			'project/renderer/n8aoIntensity', parseFloat( n8aoIntensity.getValue() ),
-			'project/renderer/n8aoSSRadius', n8aoScreenSpaceRadius.getValue(),
 			'project/renderer/n8aoAOSamples', parseInt( n8aoAOSamples.getValue() ),
 			'project/renderer/n8aoDenoiseSamples', parseInt( n8aoDenoiseSamples.getValue() ),
 			'project/renderer/n8aoDenoiseRadius', parseFloat( n8aoDenoiseRadius.getValue() ),

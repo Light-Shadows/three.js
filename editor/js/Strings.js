@@ -340,13 +340,11 @@ function Strings( config ) {
 			'sidebar/project/n8aoRadius': 'Radius',
 			'sidebar/project/n8aoDistanceFalloff': 'Distance falloff',
 			'sidebar/project/n8aoIntensity': 'Intensity',
-			'sidebar/project/n8aoScreenSpaceRadius': 'Screen space radius',
 			'sidebar/project/n8aoAOSamples': 'AO samples',
 			'sidebar/project/n8aoDenoiseSamples': 'Denoise samples',
 			'sidebar/project/n8aoDenoiseRadius': 'Denoise radius',
 
 			'sidebar/project/smaa': 'SMAA (WIP)',
-			'sidebar/project/smaaPreset': 'Preset',
 
 			'sidebar/project/materials': 'Materials',
 			'sidebar/project/Assign': 'Assign',
