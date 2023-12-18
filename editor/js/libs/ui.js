@@ -208,14 +208,6 @@ class UIPanel extends UIDiv {
 	}
 }
 
-class UIOutlinePanel extends UIDiv {
-	constructor() {
-		super();
-
-		this.dom.className = "OutlinePanel";
-	}
-}
-
 class UIText extends UISpan {
 	constructor(text) {
 		super();
@@ -1050,5 +1042,4 @@ export {
 	UITabbedPanel,
 	UIListbox,
 	ListboxItem,
-	UIOutlinePanel,
 };

@@ -292,26 +292,25 @@ select:hover {
   position: absolute;
   top: 32px;
   right: 295px;
-  width: 5px;
+  width: 15px;
   bottom: 0px;
   /* background-color: rgba(255,0,0,0.5); */
   cursor: col-resize;
 }
 
-#resizeOutliner {
+#resizerOutline {
   position: absolute;
   top: 32px;
-  left: 200px;
-  width: 5px;
+  left: 190px;
+  width: 15px;
   bottom: 0px;
-  /* background-color: rgba(255,0,0,0.5); */
   cursor: col-resize;
 }
 
 #viewport {
   position: absolute;
   top: 32px;
-  left: 0;
+  left: 200px;
   right: 300px;
   bottom: 0;
 }
@@ -352,19 +351,17 @@ select:hover {
   min-width: 260px; */
 /* } */
 
-.OutlinePanel {
+#OutlinePanel {
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
   -o-user-select: none;
   user-select: none;
   position: absolute;
-  z-index: 1;
   display: flex;
   min-width: 200px;
   top: 32px;
   height: 97%;
-  resize: horizontal;
 }
 
 #menubar {
@@ -562,6 +559,10 @@ select:hover {
     display: none;
   }
 
+  #resizerOutline {
+    display: none;
+  }
+
   #menubar .menu .options {
     max-height: calc(100% - 372px);
   }
@@ -571,7 +572,7 @@ select:hover {
   }
 
   #viewport {
-    left: 0;
+    left: 200px;
     right: 0;
     top: 32px;
     height: calc(100% - 352px);

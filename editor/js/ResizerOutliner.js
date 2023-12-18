@@ -6,7 +6,8 @@ function ResizerOutliner(editor) {
 	const dom = document.createElement("div");
 	dom.id = "resizerOutline";
 
-	function onMouseDown(event) {
+	function onPointerDown(event) {
+		console.log(dom);
 		if (event.isPrimary === false) return;
 
 		dom.ownerDocument.addEventListener("pointermove", onMouseMove);
@@ -20,24 +21,27 @@ function ResizerOutliner(editor) {
 	}
 
 	function onMouseMove(event) {
-		console.log("test");
+		// width de l'ecran
 		const offsetWidth = document.body.offsetWidth;
 		const clientX = event.clientX;
+		// const cX =
+		// 	clientX < offsetWidth ? (clientX < 0 ? 0 : clientX) : offsetWidth;
 
 		const cX = clientX < 0 ? 0 : clientX > offsetWidth ? offsetWidth : clientX;
 
-		const x = Math.max(260, offsetWidth - cX);
+		const x = Math.max(200, cX);
 
 		dom.style.left = x + "px";
+		console.log(dom.style.left);
 
-		document.getElementById("toolbar").style.left = x + "px";
-		document.getElementById("OutlinePanel").style.left = x + "px";
+		document.getElementById("OutlinePanel").style.width = x + "px";
+		document.getElementById("toolbar").style.left = x + 25 + "px";
+		document.getElementById("info").style.left = x - 185 + "px";
 
 		signals.windowResize.dispatch();
 	}
 
-	dom.addEventListener("mousedown", onMouseDown);
-
+	dom.addEventListener("pointerdown", onPointerDown);
 	return new UIElement(dom);
 }
 

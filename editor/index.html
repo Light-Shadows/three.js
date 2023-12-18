@@ -96,22 +96,14 @@
 			window.THREE = THREE; // Expose THREE to APP Scripts and Console
 			window.VRButton = VRButton; // Expose VRButton to APP Scripts
 
-			// title of outliner
-			const h1 = document.createElement("h1");
-			h1.appendChild(document.createTextNode("Outliner Panel"));
-			document.body.appendChild(h1);
-			h1.classList.add("title_outliner");
-
 			// resize of outliner
-			const resizeOutliner = new ResizerOutliner(editor);
-			document.body.appendChild(resizeOutliner.dom);
-
-			// // outliner
-			const outliner = new Outliner(editor);
-			document.body.appendChild(outliner.dom);
 
 			const viewport = new Viewport(editor);
 			document.body.appendChild(viewport.dom);
+
+			// outliner
+			const outliner = new Outliner(editor);
+			document.body.appendChild(outliner.dom);
 
 			const toolbar = new Toolbar(editor);
 			document.body.appendChild(toolbar.dom);
@@ -130,6 +122,10 @@
 
 			const resizer = new Resizer(editor);
 			document.body.appendChild(resizer.dom);
+
+			// resize of outliner
+			const resizeOutliner = new ResizerOutliner(editor);
+			document.body.appendChild(resizeOutliner.dom);
 
 			//
 
@@ -207,8 +203,6 @@
 			}
 
 			window.addEventListener("resize", onWindowResize);
-
-			console.log(window);
 
 			onWindowResize();
 

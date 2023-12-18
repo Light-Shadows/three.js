@@ -41,7 +41,6 @@ function Resizer(editor) {
 
 		signals.windowResize.dispatch();
 	}
-
 	dom.addEventListener("pointerdown", onPointerDown);
 
 	return new UIElement(dom);

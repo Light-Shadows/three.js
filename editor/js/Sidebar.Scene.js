@@ -122,18 +122,18 @@ function SidebarScene(editor) {
 
 	let ignoreObjectSelectedSignal = false;
 
-	const outliner = new UIOutliner(editor);
-	outliner.setId("outliner");
-	outliner.onChange(function () {
-		ignoreObjectSelectedSignal = true;
+	// const outliner = new UIOutliner(editor);
+	// outliner.setId("outliner");
+	// outliner.onChange(function () {
+	// 	ignoreObjectSelectedSignal = true;
 
-		editor.selectById(parseInt(outliner.getValue()));
+	// 	editor.selectById(parseInt(outliner.getValue()));
 
-		ignoreObjectSelectedSignal = false;
-	});
-	outliner.onDblClick(function () {
-		editor.focusById(parseInt(outliner.getValue()));
-	});
+	// 	ignoreObjectSelectedSignal = false;
+	// });
+	// outliner.onDblClick(function () {
+	// 	editor.focusById(parseInt(outliner.getValue()));
+	// });
 	// container.add(outliner);
 	// container.add(new UIBreak());
 
@@ -489,9 +489,9 @@ function SidebarScene(editor) {
 
 		// outliner.setOptions(options);
 
-		if (editor.selected !== null) {
-			outliner.setValue(editor.selected.id);
-		}
+		// if (editor.selected !== null) {
+		// 	outliner.setValue(editor.selected.id);
+		// }
 		if (scene.background) {
 			if (scene.background.isColor) {
 				backgroundType.setValue("Color");
@@ -613,11 +613,11 @@ function SidebarScene(editor) {
 			}
 
 			if (needsRefresh) refreshUI();
-
-			outliner.setValue(object.id);
-		} else {
-			outliner.setValue(null);
 		}
+		// 	outliner.setValue(object.id);
+		// } else {
+		// 	outliner.setValue(null);
+		// }
 	});
 
 	return container;
