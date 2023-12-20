@@ -198,6 +198,14 @@
 				}
 			});
 
+			document.getElementById("close").onclick = function () {
+				closeButton();
+			};
+
+			function closeButton() {
+				document.getElementById("messageSave").style.display = "none";
+			}
+
 			function onWindowResize() {
 				editor.signals.windowResize.dispatch();
 			}
@@ -234,5 +242,9 @@
 				} catch (error) {}
 			}
 		</script>
+		<div class="messageSave" id="messageSave">
+			<p>Your scene is saved</p>
+			<button id="close">x</button>
+		</div>
 	</body>
 </html>

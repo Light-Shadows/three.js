@@ -2,18 +2,13 @@ import * as THREE from "three";
 
 import {
 	UIPanel,
-	UIBreak,
 	UIRow,
 	UIColor,
 	UISelect,
 	UIText,
 	UINumber,
 } from "./libs/ui.js";
-import { UIBoolean, UIOutliner, UITexture } from "./libs/ui.three.js";
-// import { GroundProjectedSkybox } from "three/addons/objects/GroundProjectedSkybox.js";
-
-// let objectOfSkybox = {};
-// let groundProjectedSkybox = new GroundProjectedSkybox(objectOfSkybox);
+import { UIBoolean, UITexture } from "./libs/ui.three.js";
 
 function SidebarScene(editor) {
 	const signals = editor.signals;
@@ -121,21 +116,6 @@ function SidebarScene(editor) {
 	}
 
 	let ignoreObjectSelectedSignal = false;
-
-	// const outliner = new UIOutliner(editor);
-	// outliner.setId("outliner");
-	// outliner.onChange(function () {
-	// 	ignoreObjectSelectedSignal = true;
-
-	// 	editor.selectById(parseInt(outliner.getValue()));
-
-	// 	ignoreObjectSelectedSignal = false;
-	// });
-	// outliner.onDblClick(function () {
-	// 	editor.focusById(parseInt(outliner.getValue()));
-	// });
-	// container.add(outliner);
-	// container.add(new UIBreak());
 
 	// --------------------------------------------------background--------------------------------------------------
 
@@ -486,12 +466,6 @@ function SidebarScene(editor) {
 				}
 			}
 		})(scene.children, 0);
-
-		// outliner.setOptions(options);
-
-		// if (editor.selected !== null) {
-		// 	outliner.setValue(editor.selected.id);
-		// }
 		if (scene.background) {
 			if (scene.background.isColor) {
 				backgroundType.setValue("Color");
@@ -614,10 +588,6 @@ function SidebarScene(editor) {
 
 			if (needsRefresh) refreshUI();
 		}
-		// 	outliner.setValue(object.id);
-		// } else {
-		// 	outliner.setValue(null);
-		// }
 	});
 
 	return container;

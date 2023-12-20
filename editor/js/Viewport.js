@@ -432,6 +432,7 @@ function Viewport(editor) {
 		backgroundProjectedSkyboxRadius,
 		backgroundProjectedSkyboxScale
 	) {
+		console.log(groundProjectedSkybox);
 		scene.remove(groundProjectedSkybox);
 		switch (backgroundType) {
 			case "None":
@@ -465,6 +466,7 @@ function Viewport(editor) {
 			// add
 			case "ProjectedBackground":
 				if (backgroundToEquirect) {
+					scene.remove(groundProjectedSkybox);
 					backgroundToEquirect.mapping = THREE.EquirectangularReflectionMapping;
 					// TODO: handle cube map texture
 					groundProjectedSkybox.material.uniforms.map.value =
@@ -477,7 +479,6 @@ function Viewport(editor) {
 				}
 				break;
 		}
-
 		render();
 	});
 

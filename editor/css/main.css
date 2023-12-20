@@ -315,6 +315,27 @@ select:hover {
   bottom: 0;
 }
 
+.messageSave {
+  z-index: 20;
+  position: absolute;
+  display: none;
+  font-size: larger;
+  top: 5%;
+  left: 40%;
+  padding: 10px;
+  width: 15%;
+  border-radius: 5px;
+  background-color: #555;
+  justify-content: space-between;
+  align-items: flex-start;
+  opacity: 1;
+  transition: opacity 1s;
+}
+
+.messageSave.hide {
+  opacity: 0;
+}
+
 #viewport #info {
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
   pointer-events: none;

@@ -46,6 +46,7 @@ function MenubarStatus(editor) {
 		editor.signals.savingStarted.dispatch();
 		editor.storage.set(editor.toJSON());
 		editor.signals.savingFinished.dispatch();
+		document.getElementById("messageSave").style.display = "flex";
 	});
 	container.add(save);
 
