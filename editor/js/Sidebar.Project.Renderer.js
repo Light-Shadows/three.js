@@ -395,6 +395,28 @@ function SidebarProjectRenderer( editor ) {
 		currentRenderPass = new RenderPass( editor.scene, editor.camera );
 		currentComposer.addPass( currentRenderPass );
 
+		// N8AO
+
+		if ( n8aoBoolean.getValue() ) {
+
+			currentN8aoPass = new N8AOPostPass( editor.scene, editor.camera );
+
+			currentN8aoPass.configuration.aoRadius = parseInt( n8aoRadius.getValue() );
+			currentN8aoPass.configuration.distanceFalloff = parseFloat( n8aoDistanceFalloff.getValue() );
+			currentN8aoPass.configuration.intensity = parseFloat( n8aoIntensity.getValue() );
+			currentN8aoPass.configuration.screenSpaceRadius = true;
+			currentN8aoPass.configuration.aoSamples = parseInt( n8aoAOSamples.getValue() );
+			currentN8aoPass.configuration.denoiseSamples = parseInt( n8aoDenoiseSamples.getValue() );
+			currentN8aoPass.configuration.denoiseRadius = parseFloat( n8aoDenoiseRadius.getValue() );
+
+			currentComposer.addPass( currentN8aoPass );
+
+		} else {
+
+			currentN8aoPass = null;
+
+		}
+
 		// Bloom
 
 		if ( bloomBoolean.getValue() ) {
@@ -440,28 +462,6 @@ function SidebarProjectRenderer( editor ) {
 		} else {
 
 			currentToneMappingEffect = null;
-
-		}
-
-		// N8AO
-
-		if ( n8aoBoolean.getValue() ) {
-
-			currentN8aoPass = new N8AOPostPass( editor.scene, editor.camera );
-
-			currentN8aoPass.configuration.aoRadius = parseInt( n8aoRadius.getValue() );
-			currentN8aoPass.configuration.distanceFalloff = parseFloat( n8aoDistanceFalloff.getValue() );
-			currentN8aoPass.configuration.intensity = parseFloat( n8aoIntensity.getValue() );
-			currentN8aoPass.configuration.screenSpaceRadius = true;
-			currentN8aoPass.configuration.aoSamples = parseInt( n8aoAOSamples.getValue() );
-			currentN8aoPass.configuration.denoiseSamples = parseInt( n8aoDenoiseSamples.getValue() );
-			currentN8aoPass.configuration.denoiseRadius = parseFloat( n8aoDenoiseRadius.getValue() );
-
-			currentComposer.addPass( currentN8aoPass );
-
-		} else {
-
-			currentN8aoPass = null;
 
 		}
 
