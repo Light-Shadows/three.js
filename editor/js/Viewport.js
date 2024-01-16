@@ -35,7 +35,13 @@ function Viewport(editor) {
 	let pmremGenerator = null;
 	let showSceneHelpers = true;
 	let objectOfSkybox = {};
-	let groundProjectedSkybox = new GroundedSkybox(objectOfSkybox);
+	let heightGroundedSkybox = 50;
+	let radiusGroundedSkybox = 150;
+	let groundProjectedSkybox = new GroundedSkybox(
+		objectOfSkybox,
+		heightGroundedSkybox,
+		radiusGroundedSkybox
+	);
 
 	const camera = editor.camera;
 	const scene = editor.scene;
@@ -467,11 +473,14 @@ function Viewport(editor) {
 					backgroundToEquirect.mapping = THREE.EquirectangularReflectionMapping;
 					// TODO: handle cube map texture
 					console.log();
-					groundProjectedSkybox.material.uniforms.map.value =
-						backgroundToEquirect;
-					groundProjectedSkybox.scale.setScalar(backgroundProjectedSkyboxScale);
-					groundProjectedSkybox.height = backgroundProjectedSkyboxHeight;
-					groundProjectedSkybox.radius = backgroundProjectedSkyboxRadius;
+					groundProjectedSkybox.material.map = backgroundToEquirect;
+					groundProjectedSkybox.position.y = backgroundProjectedSkyboxHeight;
+					groundProjectedSkybox.position.x =
+						backgroundProjectedSkyboxRadius - 150;
+					// groundProjectedSkybox.scale(backgroundProjectedSkyboxScale);
+					console.log(groundProjectedSkybox);
+					radiusGroundedSkybox = backgroundProjectedSkyboxRadius;
+					heightGroundedSkybox = backgroundProjectedSkyboxHeight;
 					scene.background = null;
 					scene.add(groundProjectedSkybox);
 				}

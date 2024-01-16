@@ -206,7 +206,7 @@ function SidebarScene(editor) {
 
 	const backgroundProjectedSkyboxRadius = new UINumber(150)
 		.setWidth("40px")
-		.setRange(100)
+		.setRange(100, 300)
 		.onChange(onBackgroundChanged);
 
 	// add backgroundSkyboxRadius to bgToEquirect
