@@ -35,13 +35,7 @@ function Viewport(editor) {
 	let pmremGenerator = null;
 	let showSceneHelpers = true;
 	let objectOfSkybox = {};
-	let heightGroundedSkybox = 50;
-	let radiusGroundedSkybox = 150;
-	let groundProjectedSkybox = new GroundedSkybox(
-		objectOfSkybox,
-		heightGroundedSkybox,
-		radiusGroundedSkybox
-	);
+	let groundProjectedSkybox = new GroundedSkybox(objectOfSkybox);
 
 	const camera = editor.camera;
 	const scene = editor.scene;
@@ -421,8 +415,12 @@ function Viewport(editor) {
 	signals.materialChanged.add(function () {
 		render();
 	});
-
 	// background
+
+	//function return groundedSkybox
+	const createGroundedSkybox = (map, height, radius, resolution = 128) => {
+		return new GroundedSkybox(map, height, radius, resolution);
+	};
 
 	signals.sceneBackgroundChanged.add(function (
 		backgroundType,
@@ -437,7 +435,6 @@ function Viewport(editor) {
 		backgroundProjectedSkyboxRadius,
 		backgroundProjectedSkyboxScale
 	) {
-		scene.remove(groundProjectedSkybox);
 		switch (backgroundType) {
 			case "None":
 				scene.background = null;
@@ -472,15 +469,20 @@ function Viewport(editor) {
 				if (backgroundToEquirect) {
 					backgroundToEquirect.mapping = THREE.EquirectangularReflectionMapping;
 					// TODO: handle cube map texture
-					console.log();
+					scene.remove(groundProjectedSkybox);
+					groundProjectedSkybox = new GroundedSkybox(
+						objectOfSkybox,
+						backgroundProjectedSkyboxHeight,
+						backgroundProjectedSkyboxRadius
+					);
 					groundProjectedSkybox.material.map = backgroundToEquirect;
 					groundProjectedSkybox.position.y = backgroundProjectedSkyboxHeight;
-					groundProjectedSkybox.position.x =
-						backgroundProjectedSkyboxRadius - 150;
-					// groundProjectedSkybox.scale(backgroundProjectedSkyboxScale);
-					console.log(groundProjectedSkybox);
-					radiusGroundedSkybox = backgroundProjectedSkyboxRadius;
-					heightGroundedSkybox = backgroundProjectedSkyboxHeight;
+					groundProjectedSkybox.scale.set(
+						backgroundProjectedSkyboxScale,
+						1,
+						backgroundProjectedSkyboxScale
+					);
+					console.log(groundProjectedSkybox.scale);
 					scene.background = null;
 					scene.add(groundProjectedSkybox);
 				}

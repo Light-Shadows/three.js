@@ -206,7 +206,7 @@ function SidebarScene(editor) {
 
 	const backgroundProjectedSkyboxRadius = new UINumber(150)
 		.setWidth("40px")
-		.setRange(100, 300)
+		.setRange(0, 3000)
 		.onChange(onBackgroundChanged);
 
 	// add backgroundSkyboxRadius to bgToEquirect
@@ -214,9 +214,9 @@ function SidebarScene(editor) {
 
 	projBackground.add(new UIText("scale: "));
 
-	const backgroundProjectedSkyboxScale = new UINumber(30)
+	const backgroundProjectedSkyboxScale = new UINumber(1)
 		.setWidth("40px")
-		.setRange(0, 200)
+		.setRange(0, 6)
 		.onChange(onBackgroundChanged);
 	projBackground.add(backgroundProjectedSkyboxScale);
 

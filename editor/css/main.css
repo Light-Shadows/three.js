@@ -395,6 +395,9 @@ select:hover {
 }
 
 #menubar .menu.right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   float: right;
   cursor: auto;
   padding-right: 0;
