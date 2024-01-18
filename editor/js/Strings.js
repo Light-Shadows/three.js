@@ -125,6 +125,8 @@ function Strings( config ) {
 			'sidebar/object/frustumcull': 'Frustum Cull',
 			'sidebar/object/renderorder': 'Render Order',
 			'sidebar/object/userdata': 'User data',
+			'sidebar/object/model_header': 'Model',
+			'sidebar/object/replace_model': 'Replace',
 
 			'sidebar/geometry/type': 'Type',
 			'sidebar/geometry/new': 'New',

@@ -386,6 +386,67 @@ function SidebarObject( editor ) {
 
 	container.add( objectUserDataRow );
 
+	const modelPanel = new UIPanel();
+	container.add( modelPanel );
+
+	// title
+
+	const modelHeaderRow = new UIRow();
+	modelHeaderRow.add( new UIText( strings.getKey( 'sidebar/object/model_header' ).toUpperCase() ) );
+	modelPanel.add( modelHeaderRow );
+
+	// change model
+	// Changes the model of the selected object with a given model file and reassigns the material
+
+	const changeModelRow = new UIRow();
+	modelPanel.add( changeModelRow );
+
+	const changeModel = new UIButton( strings.getKey( 'sidebar/object/replace_model' ) ).onClick( function () {
+
+		console.log( 'change model' );
+
+		const object = editor.selected;
+		const loader = new THREE.FileLoader();
+		const fileInput = document.createElement( 'input' );
+		fileInput.type = 'file';
+		fileInput.addEventListener( 'change', function ( event ) {
+
+			const file = event.target.files[ 0 ];
+			if ( file !== undefined ) {
+
+				const reader = new FileReader();
+				reader.addEventListener( 'load', function ( event ) {
+
+					const contents = event.target.result;
+					const json = JSON.parse( contents );
+					const loader = new THREE.ObjectLoader();
+					const model = loader.parse( json );
+					model.traverse( function ( child ) {
+
+						if ( child.isMesh ) {
+
+							child.material.needsUpdate = true;
+
+						}
+
+					} );
+					editor.execute( new SetValueCommand( editor, object, 'children', [] ) );
+					editor.loader.loadFiles( [ file ] );
+					editor.deselect();
+					editor.select( model );
+
+				}, false );
+				reader.readAsText( file );
+
+			}
+
+		} );
+		fileInput.click();
+
+		console.log( fileInput );
+
+	} );
+	changeModelRow.add( changeModel );
 
 	//
 
