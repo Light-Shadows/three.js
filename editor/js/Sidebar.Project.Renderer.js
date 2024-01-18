@@ -381,7 +381,7 @@ function SidebarProjectRenderer( editor ) {
 			powerPreference: 'high-performance',
 			antialias: false,
 			stencil: false,
-			depth: false,
+			depth: true, // ! n8aoBoolean.getValue(),
 			toneMapping: THREE.NoToneMapping,
 			toneMappingExposure: parseFloat( toneMappingExposure.getValue() )
 		} );
