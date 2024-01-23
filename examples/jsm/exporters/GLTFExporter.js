@@ -532,7 +532,8 @@ class GLTFWriter {
 			onlyVisible: true,
 			maxTextureSize: Infinity,
 			animations: [],
-			includeCustomExtensions: false
+			includeCustomExtensions: false,
+			embedImages: false
 		}, options );
 
 		if ( this.options.animations.length > 0 ) {
@@ -1245,88 +1246,96 @@ class GLTFWriter {
 
 			const imageDef = { mimeType: mimeType };
 
-			const canvas = getCanvas();
+			if ( options.embedImages ) {
 
-			canvas.width = Math.min( image.width, options.maxTextureSize );
-			canvas.height = Math.min( image.height, options.maxTextureSize );
+				const canvas = getCanvas();
 
-			const ctx = canvas.getContext( '2d' );
+				canvas.width = Math.min( image.width, options.maxTextureSize );
+				canvas.height = Math.min( image.height, options.maxTextureSize );
 
-			if ( flipY === true ) {
+				const ctx = canvas.getContext( '2d' );
 
-				ctx.translate( 0, canvas.height );
-				ctx.scale( 1, - 1 );
+				if ( flipY === true ) {
 
-			}
-
-			if ( image.data !== undefined ) { // THREE.DataTexture
-
-				if ( format !== RGBAFormat ) {
-
-					console.error( 'GLTFExporter: Only RGBAFormat is supported.', format );
+					ctx.translate( 0, canvas.height );
+					ctx.scale( 1, - 1 );
 
 				}
 
-				if ( image.width > options.maxTextureSize || image.height > options.maxTextureSize ) {
+				if ( image.data !== undefined ) { // THREE.DataTexture
 
-					console.warn( 'GLTFExporter: Image size is bigger than maxTextureSize', image );
+					if ( format !== RGBAFormat ) {
 
-				}
+						console.error( 'GLTFExporter: Only RGBAFormat is supported.', format );
 
-				const data = new Uint8ClampedArray( image.height * image.width * 4 );
+					}
 
-				for ( let i = 0; i < data.length; i += 4 ) {
+					if ( image.width > options.maxTextureSize || image.height > options.maxTextureSize ) {
 
-					data[ i + 0 ] = image.data[ i + 0 ];
-					data[ i + 1 ] = image.data[ i + 1 ];
-					data[ i + 2 ] = image.data[ i + 2 ];
-					data[ i + 3 ] = image.data[ i + 3 ];
+						console.warn( 'GLTFExporter: Image size is bigger than maxTextureSize', image );
 
-				}
+					}
 
-				ctx.putImageData( new ImageData( data, image.width, image.height ), 0, 0 );
+					const data = new Uint8ClampedArray( image.height * image.width * 4 );
 
-			} else {
+					for ( let i = 0; i < data.length; i += 4 ) {
 
-				ctx.drawImage( image, 0, 0, canvas.width, canvas.height );
+						data[ i + 0 ] = image.data[ i + 0 ];
+						data[ i + 1 ] = image.data[ i + 1 ];
+						data[ i + 2 ] = image.data[ i + 2 ];
+						data[ i + 3 ] = image.data[ i + 3 ];
 
-			}
+					}
 
-			if ( options.binary === true ) {
-
-				pending.push(
-
-					getToBlobPromise( canvas, mimeType )
-						.then( blob => writer.processBufferViewImage( blob ) )
-						.then( bufferViewIndex => {
-
-							imageDef.bufferView = bufferViewIndex;
-
-						} )
-
-				);
-
-			} else {
-
-				if ( canvas.toDataURL !== undefined ) {
-
-					imageDef.uri = canvas.toDataURL( mimeType );
+					ctx.putImageData( new ImageData( data, image.width, image.height ), 0, 0 );
 
 				} else {
+
+					ctx.drawImage( image, 0, 0, canvas.width, canvas.height );
+
+				}
+
+				if ( options.binary === true ) {
 
 					pending.push(
 
 						getToBlobPromise( canvas, mimeType )
-							.then( blob => new FileReader().readAsDataURL( blob ) )
-							.then( dataURL => {
+							.then( blob => writer.processBufferViewImage( blob ) )
+							.then( bufferViewIndex => {
 
-								imageDef.uri = dataURL;
+								imageDef.bufferView = bufferViewIndex;
 
 							} )
 
 					);
 
+				} else {
+
+					if ( canvas.toDataURL !== undefined ) {
+
+						imageDef.uri = canvas.toDataURL( mimeType );
+
+					} else {
+
+						pending.push(
+
+							getToBlobPromise( canvas, mimeType )
+								.then( blob => new FileReader().readAsDataURL( blob ) )
+								.then( dataURL => {
+
+									imageDef.uri = dataURL;
+
+								} )
+
+						);
+
+					}
+
 				}
+
+			} else {
+
+				imageDef.uri = image.src;
 
 			}
 
