@@ -7,7 +7,9 @@ class ImageUtils {
 
 	static getDataURL( image ) {
 
-		if ( /^data:/i.test( image.src ) ) {
+		const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;
+
+		if ( urlPattern.test( image.src ) || /^data:/i.test( image.src ) ) {
 
 			return image.src;
 
