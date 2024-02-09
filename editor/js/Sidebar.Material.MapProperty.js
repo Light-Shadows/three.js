@@ -12,7 +12,7 @@ function SidebarMaterialMapProperty( editor, property, name ) {
 	const signals = editor.signals;
 
 	const container = new UIRow();
-	container.setStyle( 'border-top', [ '1px solid #888' ] );
+	container.setStyle( 'border-bottom', [ '1px solid #888' ] );
 
 	const mainContainer = new UIDiv().setWidth( '86px' ).setMarginRight( '4px' );
 	container.add( mainContainer );
