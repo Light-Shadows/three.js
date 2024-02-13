@@ -7,7 +7,6 @@ import { NodeSampledTexture, NodeSampledCubeTexture } from '../../common/nodes/N
 
 import UniformBuffer from '../../common/UniformBuffer.js';
 import StorageBuffer from '../../common/StorageBuffer.js';
-import { getVectorLength, getStrideLength } from '../../common/BufferUtils.js';
 
 import { NodeBuilder, CodeNode } from '../../../nodes/Nodes.js';
 
@@ -54,6 +53,11 @@ const wgslTypeLib = {
 	ivec4: 'vec4<i32>',
 	uvec4: 'vec4<u32>',
 	bvec4: 'vec4<bool>',
+
+	mat2: 'mat2x2<f32>',
+	imat2: 'mat2x2<i32>',
+	umat2: 'mat2x2<u32>',
+	bmat2: 'mat2x2<bool>',
 
 	mat3: 'mat3x3<f32>',
 	imat3: 'mat3x3<i32>',
@@ -208,6 +212,12 @@ class WGSLNodeBuilder extends NodeBuilder {
 
 	}
 
+	generateTextureStore( texture, textureProperty, uvIndexSnippet, valueSnippet ) {
+
+		return `textureStore( ${ textureProperty }, ${ uvIndexSnippet }, ${ valueSnippet } )`;
+
+	}
+
 	isUnfilterable( texture ) {
 
 		return texture.isDataTexture === true && texture.type === FloatType;
@@ -283,7 +293,7 @@ class WGSLNodeBuilder extends NodeBuilder {
 			const name = node.name;
 			const type = node.type;
 
-			if ( type === 'texture' || type === 'cubeTexture' ) {
+			if ( type === 'texture' || type === 'cubeTexture' || type === 'storageTexture' ) {
 
 				return name;
 
@@ -336,11 +346,11 @@ class WGSLNodeBuilder extends NodeBuilder {
 
 			const bindings = this.bindings[ shaderStage ];
 
-			if ( type === 'texture' || type === 'cubeTexture' ) {
+			if ( type === 'texture' || type === 'cubeTexture' || type === 'storageTexture' ) {
 
 				let texture = null;
 
-				if ( type === 'texture' ) {
+				if ( type === 'texture' || type === 'storageTexture' ) {
 
 					texture = new NodeSampledTexture( uniformNode.name, uniformNode.node );
 
@@ -400,31 +410,9 @@ class WGSLNodeBuilder extends NodeBuilder {
 
 				}
 
-				if ( node.isArrayUniformNode === true ) {
+				uniformGPU = this.getNodeUniform( uniformNode, type );
 
-					uniformGPU = [];
-
-					for ( const uniformNode of node.nodes ) {
-
-						const uniformNodeGPU = this.getNodeUniform( uniformNode, type );
-
-						// fit bounds to buffer
-						uniformNodeGPU.boundary = getVectorLength( uniformNodeGPU.itemSize );
-						uniformNodeGPU.itemSize = getStrideLength( uniformNodeGPU.itemSize );
-
-						uniformsGroup.addUniform( uniformNodeGPU );
-
-						uniformGPU.push( uniformNodeGPU );
-
-					}
-
-				} else {
-
-					uniformGPU = this.getNodeUniform( uniformNode, type );
-
-					uniformsGroup.addUniform( uniformGPU );
-
-				}
+				uniformsGroup.addUniform( uniformGPU );
 
 			}
 
@@ -723,7 +711,7 @@ ${ flowData.code }
 
 		for ( const uniform of uniforms ) {
 
-			if ( uniform.type === 'texture' || uniform.type === 'cubeTexture' ) {
+			if ( uniform.type === 'texture' || uniform.type === 'cubeTexture' || uniform.type === 'storageTexture' ) {
 
 				const texture = uniform.node.value;
 
@@ -795,17 +783,7 @@ ${ flowData.code }
 					snippets: []
 				} );
 
-				if ( Array.isArray( uniform.value ) === true ) {
-
-					const length = uniform.value.length;
-
-					group.snippets.push( `uniform ${vectorType}[ ${length} ] ${uniform.name}` );
-
-				} else {
-
-					group.snippets.push( `\t${uniform.name} : ${ vectorType}` );
-
-				}
+				group.snippets.push( `\t${ uniform.name } : ${ vectorType }` );
 
 			}
 
