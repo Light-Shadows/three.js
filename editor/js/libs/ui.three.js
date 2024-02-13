@@ -34,7 +34,99 @@ class UITexture extends UISpan {
 		canvas.style.border = '1px solid #888';
 		canvas.addEventListener( 'click', function () {
 
-			input.click();
+			// get or create custom context menu
+
+			const menu = document.createElement( 'div' );
+			menu.id = 'contextmenu';
+			menu.style.position = 'absolute';
+			menu.style.zIndex = '10';
+			menu.style.backgroundColor = '#eee';
+			menu.style.color = '#000';
+			menu.style.padding = '5px';
+			menu.style.cursor = 'pointer';
+			menu.style.border = '1px solid #ccc';
+			menu.style.borderRadius = '5px';
+			document.body.appendChild( menu );
+
+			let exists = true;
+
+			const option1 = document.createElement( 'div' );
+			option1.style.borderBottom = '1px solid #ccc';
+			option1.style.marginBottom = '5px';
+			option1.style.paddingBottom = '5px';
+			option1.style.borderRadius = 'inherit';
+			option1.textContent = 'From URL...';
+
+			option1.addEventListener( 'click', function () {
+
+				if ( ! exists ) return;
+				exists = false;
+
+				const url = prompt( 'URL' );
+
+				if ( url !== null ) {
+
+					const loader = new THREE.TextureLoader();
+					loader.crossOrigin = '';
+					loader.load( url, function ( texture ) {
+
+						texture.sourceFile = url;
+
+						scope.setValue( texture );
+
+						if ( scope.onChangeCallback ) scope.onChangeCallback( texture );
+
+					} );
+
+				}
+
+				console.log( this );
+
+				document.body.removeChild( menu );
+
+			} );
+			menu.appendChild( option1 );
+
+			const option2 = document.createElement( 'div' );
+			option2.style.borderRadius = 'inherit';
+			option2.textContent = 'From file...';
+
+			option2.addEventListener( 'click', function () {
+
+				if ( ! exists ) return;
+				exists = false;
+
+				input.click();
+
+				document.body.removeChild( menu );
+
+			} );
+			menu.appendChild( option2 );
+
+			const onOutsideClick = function ( event ) {
+
+				if ( ! exists ) {
+
+					document.body.removeEventListener( 'click', onOutsideClick );
+					return;
+
+				}
+
+				if ( event.target !== canvas && event.target !== option1 && event.target !== option2 ) {
+
+					exists = false;
+					document.body.removeChild( menu );
+					document.body.removeEventListener( 'click', onOutsideClick );
+
+				}
+
+			};
+
+			document.body.addEventListener( 'click', onOutsideClick );
+
+			const rect = canvas.getBoundingClientRect();
+			menu.style.left = rect.left + 'px';
+			menu.style.top = rect.top + 'px';
 
 		} );
 		canvas.addEventListener( 'drop', function ( event ) {

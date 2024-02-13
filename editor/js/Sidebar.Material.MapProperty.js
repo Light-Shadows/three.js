@@ -235,7 +235,6 @@ function SidebarMaterialMapProperty( editor, property, name ) {
 
 				if ( property !== 'envMap' && property !== 'lightMap' && property !== 'aoMap' ) {
 
-					console.log( wrapS, wrapT );
 					newMap.wrapS = THREE[ wrapS.getValue() ];
 					newMap.wrapT = THREE[ wrapT.getValue() ];
 
@@ -310,8 +309,6 @@ function SidebarMaterialMapProperty( editor, property, name ) {
 		const newMap = enabled.getValue() ? map.getValue() : null;
 
 		if ( newMap !== null ) {
-
-			console.log( wrapS, wrapT );
 
 			newMap.wrapS = THREE[ wrapS.getValue() ];
 			newMap.wrapT = THREE[ wrapT.getValue() ];
@@ -430,8 +427,6 @@ function SidebarMaterialMapProperty( editor, property, name ) {
 
 				wrapS.setValue( Object.keys( wrapTypes ).find( key => THREE[ key ] === material[ property ].wrapS ) || 'RepeatWrapping' );
 				wrapT.setValue( Object.keys( wrapTypes ).find( key => THREE[ key ] === material[ property ].wrapT ) || 'RepeatWrapping' );
-
-				console.log( wrapS, wrapT );
 
 			} else {
 
