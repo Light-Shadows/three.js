@@ -43,6 +43,8 @@ class WebGPUBackend extends Backend {
 
 		this.parameters.requiredLimits = ( parameters.requiredLimits === undefined ) ? {} : parameters.requiredLimits;
 
+		this.trackTimestamp = ( parameters.trackTimestamp === true );
+
 		this.adapter = null;
 		this.device = null;
 		this.context = null;
@@ -323,6 +325,8 @@ class WebGPUBackend extends Backend {
 
 		}
 
+		this.initTimestampQuery( renderContext, descriptor );
+
 		descriptor.occlusionQuerySet = occlusionQuerySet;
 
 		const depthStencilAttachment = descriptor.depthStencilAttachment;
@@ -490,7 +494,10 @@ class WebGPUBackend extends Backend {
 
 		}
 
+		this.prepareTimestampBuffer( renderContext, renderContextData.encoder );
+
 		this.device.queue.submit( [ renderContextData.encoder.finish() ] );
+
 
 		//
 
@@ -544,7 +551,7 @@ class WebGPUBackend extends Backend {
 
 			for ( let i = 0; i < currentOcclusionQueryObjects.length; i ++ ) {
 
-				if ( results[ i ] !== 0 ) {
+				if ( results[ i ] !== 0n ) {
 
 					occluded.add( currentOcclusionQueryObjects[ i ] );
 
@@ -725,8 +732,14 @@ class WebGPUBackend extends Backend {
 
 		const groupGPU = this.get( computeGroup );
 
-		groupGPU.cmdEncoderGPU = this.device.createCommandEncoder( {} );
-		groupGPU.passEncoderGPU = groupGPU.cmdEncoderGPU.beginComputePass();
+
+		const descriptor = {};
+
+		this.initTimestampQuery( computeGroup, descriptor );
+
+		groupGPU.cmdEncoderGPU = this.device.createCommandEncoder();
+
+		groupGPU.passEncoderGPU = groupGPU.cmdEncoderGPU.beginComputePass( descriptor );
 
 	}
 
@@ -753,6 +766,9 @@ class WebGPUBackend extends Backend {
 		const groupData = this.get( computeGroup );
 
 		groupData.passEncoderGPU.end();
+
+		this.prepareTimestampBuffer( computeGroup, groupData.cmdEncoderGPU );
+
 		this.device.queue.submit( [ groupData.cmdEncoderGPU.finish() ] );
 
 	}
@@ -913,7 +929,8 @@ class WebGPUBackend extends Backend {
 			data.side !== material.side || data.alphaToCoverage !== material.alphaToCoverage ||
 			data.sampleCount !== sampleCount || data.colorSpace !== colorSpace ||
 			data.colorFormat !== colorFormat || data.depthStencilFormat !== depthStencilFormat ||
-			data.primitiveTopology !== primitiveTopology
+			data.primitiveTopology !== primitiveTopology ||
+			data.clippingContextVersion !== renderObject.clippingContextVersion
 		) {
 
 			data.material = material; data.materialVersion = material.version;
@@ -931,6 +948,7 @@ class WebGPUBackend extends Backend {
 			data.colorFormat = colorFormat;
 			data.depthStencilFormat = depthStencilFormat;
 			data.primitiveTopology = primitiveTopology;
+			data.clippingContextVersion = renderObject.clippingContextVersion;
 
 			needsUpdate = true;
 
@@ -959,7 +977,8 @@ class WebGPUBackend extends Backend {
 			material.side,
 			utils.getSampleCount( renderContext ),
 			utils.getCurrentColorSpace( renderContext ), utils.getCurrentColorFormat( renderContext ), utils.getCurrentDepthStencilFormat( renderContext ),
-			utils.getPrimitiveTopology( object, material )
+			utils.getPrimitiveTopology( object, material ),
+			renderObject.clippingContextVersion
 		].join();
 
 	}
@@ -1014,6 +1033,87 @@ class WebGPUBackend extends Backend {
 
 	}
 
+
+	initTimestampQuery( renderContext, descriptor ) {
+
+		if ( ! this.hasFeature( GPUFeatureName.TimestampQuery ) || ! this.trackTimestamp ) return;
+
+		const renderContextData = this.get( renderContext );
+
+		if ( ! renderContextData.timeStampQuerySet ) {
+
+			// Create a GPUQuerySet which holds 2 timestamp query results: one for the
+			// beginning and one for the end of compute pass execution.
+			const timeStampQuerySet = this.device.createQuerySet( { type: 'timestamp', count: 2 } );
+
+			const timestampWrites = {
+				querySet: timeStampQuerySet,
+				beginningOfPassWriteIndex: 0, // Write timestamp in index 0 when pass begins.
+				endOfPassWriteIndex: 1, // Write timestamp in index 1 when pass ends.
+			};
+			Object.assign( descriptor, {
+				timestampWrites,
+			} );
+			renderContextData.timeStampQuerySet = timeStampQuerySet;
+
+		}
+
+	}
+
+	// timestamp utils
+
+	prepareTimestampBuffer( renderContext, encoder ) {
+
+		if ( ! this.hasFeature( GPUFeatureName.TimestampQuery ) || ! this.trackTimestamp ) return;
+
+		const renderContextData = this.get( renderContext );
+
+		const size = 2 * BigInt64Array.BYTES_PER_ELEMENT;
+		const resolveBuffer = this.device.createBuffer( {
+			size,
+			usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
+		} );
+
+		const resultBuffer = this.device.createBuffer( {
+			size,
+			usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+		} );
+
+		encoder.resolveQuerySet( renderContextData.timeStampQuerySet, 0, 2, resolveBuffer, 0 );
+		encoder.copyBufferToBuffer( resolveBuffer, 0, resultBuffer, 0, size );
+
+		renderContextData.currentTimestampQueryBuffer = resultBuffer;
+
+	}
+
+	async resolveTimestampAsync( renderContext, type = 'render' ) {
+
+		if ( ! this.hasFeature( GPUFeatureName.TimestampQuery ) || ! this.trackTimestamp ) return;
+
+		const renderContextData = this.get( renderContext );
+
+		// handle timestamp query results
+
+		const { currentTimestampQueryBuffer } = renderContextData;
+
+		if ( currentTimestampQueryBuffer ) {
+
+			renderContextData.currentTimestampQueryBuffer = null;
+
+			await currentTimestampQueryBuffer.mapAsync( GPUMapMode.READ );
+
+			const times = new BigUint64Array( currentTimestampQueryBuffer.getMappedRange() );
+
+			const duration = Number( times[ 1 ] - times[ 0 ] ) / 1000000;
+			// console.log( `Compute ${type} duration: ${Number( times[ 1 ] - times[ 0 ] ) / 1000000}ms` );
+			this.renderer.info.updateTimestamp( type, duration );
+
+			currentTimestampQueryBuffer.unmap();
+
+		}
+
+	}
+
 	// node builder
 
 	createNodeBuilder( object, renderer, scene = null ) {
@@ -1043,9 +1143,9 @@ class WebGPUBackend extends Backend {
 
 	// pipelines
 
-	createRenderPipeline( renderObject ) {
+	createRenderPipeline( renderObject, promises ) {
 
-		this.pipelineUtils.createRenderPipeline( renderObject );
+		this.pipelineUtils.createRenderPipeline( renderObject, promises );
 
 	}
 
@@ -1156,17 +1256,41 @@ class WebGPUBackend extends Backend {
 
 		let sourceGPU = null;
 
-		if ( texture.isFramebufferTexture ) {
+		if ( renderContext.renderTarget ) {
 
-			sourceGPU = this.context.getCurrentTexture();
+			if ( texture.isDepthTexture ) {
 
-		} else if ( texture.isDepthTexture ) {
+				sourceGPU = this.get( renderContext.depthTexture ).texture;
 
-			sourceGPU = this.textureUtils.getDepthBuffer( renderContext.depth, renderContext.stencil );
+			} else {
+
+				sourceGPU = this.get( renderContext.textures[ 0 ] ).texture;
+
+			}
+
+		} else {
+
+			if ( texture.isDepthTexture ) {
+
+				sourceGPU = this.textureUtils.getDepthBuffer( renderContext.depth, renderContext.stencil );
+
+			} else {
+
+				sourceGPU = this.context.getCurrentTexture();
+
+			}
 
 		}
 
 		const destinationGPU = this.get( texture ).texture;
+
+		if ( sourceGPU.format !== destinationGPU.format ) {
+
+			console.error( 'WebGPUBackend: copyFramebufferToTexture: Source and destination formats do not match.', sourceGPU.format, destinationGPU.format );
+
+			return;
+
+		}
 
 		renderContextData.currentPass.end();
 
