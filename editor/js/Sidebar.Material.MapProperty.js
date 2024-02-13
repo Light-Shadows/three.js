@@ -487,8 +487,17 @@ function SidebarMaterialMapProperty( editor, property, name ) {
 
 			if ( scaleX !== undefined ) {
 
-				scaleX.setValue( material[ `${ mapType }Scale` ].x );
-				scaleY.setValue( material[ `${ mapType }Scale` ].y );
+				const scaleValue = material[ `${ mapType }Scale` ].x;
+				scaleX.setValue( scaleValue );
+				scaleY.setValue( - scaleValue );
+
+				const value = [ scaleValue, - scaleValue ];
+
+				if ( material[ `${ mapType }Scale` ].x !== value[ 0 ] || material[ `${ mapType }Scale` ].y !== value[ 1 ] ) {
+
+					editor.execute( new SetMaterialVectorCommand( editor, object, `${ mapType }Scale`, value, materialSlot ) );
+
+				}
 
 			}
 
